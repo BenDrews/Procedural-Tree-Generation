@@ -284,24 +284,16 @@ void App::makeGlass(const int& pts, const int& sections, const float& height, st
 }
 
 
-void App::addCylindricSection(const shared_ptr<Mesh> mesh, const int& index, const int& pts, const float& height, const float& radius) {
-	for(int i = 0; i < pts; ++i) {
+void App::addCylindricSection(const shared_ptr<Mesh> mesh, const int& index, const int& pts, const Point3& origin, const float& pitch, const float& yaw, const float& radius) {
+	
+    for(int i = 0; i < pts; ++i) {
 		float angle = (i * 2.0f * pif()) / pts;
-		mesh->addVertex(radius * cos(angle), height, radius * sin(angle));
+		mesh->addVertex(radius * cos(angle) * cos(pitch) * sin(yaw) + origin.x, radius * sin(pitch) + origin.y, radius * sin(angle) * sin(pitch) * sin(yaw) + origin.z);
 	}
+	int offset = index * pts;
 	for(int i = 0; i < pts; ++i) {
-		float angle = (i * 2.0f * pif()) / pts;
-		mesh->addVertex((radius - 1.0f) * cos(angle), height, (radius - 1.0f) * sin(angle));
-	}
-	int offset = index * pts * 2;
-	for(int i = 0; i < pts; ++i) {
-		mesh->addFace(offset + ((i + 1) % pts), offset + i + (2 * pts), offset + i);
-		mesh->addFace(offset + ((i + 1) % pts), offset + ((i + 1) % pts) + (2 * pts), offset + i + (2 * pts));
-	}
-	offset += pts;
-	for(int i = 0; i < pts; ++i) {
-		mesh->addFace(offset + ((i + 1) % pts), offset + i, offset + i + (2 * pts));
-		mesh->addFace(offset + ((i + 1) % pts) + (2 * pts), offset + ((i + 1) % pts), offset + i + (2 * pts));
+		mesh->addFace(offset + ((i + 1) % pts), offset + i + (pts), offset + i);
+		mesh->addFace(offset + ((i + 1) % pts), offset + ((i + 1) % pts) + (pts), offset + i + (pts));
 	}
 }
 
