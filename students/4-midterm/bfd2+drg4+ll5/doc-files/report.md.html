@@ -1,138 +1,76 @@
 ﻿                  <meta charset="utf-8">
-                 **Lab Report: 1-meshes**
-                            Ben Drews
+                  **Report: Trees**
+            Ben Drews, Diego Gonzalez, Lylia Li
+            bfd2@williams.edu
+            drg4@williams.edu
+            ll5@williams.edu
 
-Algorithms
+Teaser image here!!!
+
+Introduction
+==================================
+sup
+
+Specification
 ==================================
 
-All of our algorithms work by creating a mesh object, which holds the logic for adding vertices and faces, as well as how to convert them to an `.OFF` file. In general each algorithm is concerned with the following aspects: 
-
-    1. Enumerating the vertices in a way that they form logical, easy to navigate blocks.
-
-    2. Placing the verticies at the correct locations.
-
-    3. Defining the face topology.
-
-**`makeCylinder`**
-
-For the cylinder, we begin by adding `pts=50` evenly spaced vertices around two circles with the specified radius, one at `y = height/2` and the other at `y = -height/2`. We can then use the offset of `pts` to swap between the top circle and bottom circle. We then iterate through the points on the circle, defining the side faces as follows:
-
-        ******************************
-        *         i       (i+1)%pts  *
-        *                            *
-        *       ⋯-*--------*-⋯       *
-        *         |\       |         *
-        *         | \      |         *
-        *         |  \     |         *
-        *         |   \    |         *
-        *         |    \   |         *
-        *         |     \  |         *
-        *         |      \ |         *
-        *         |       \|         *
-        *       ⋯-*--------*-⋯       *
-        *                            *
-        *      i+50    (i+1)%pts+pts *
-        ******************************
-        
-    To define the topology of the top and bottom faces, we write:
-`````````````````````````````````````
-for(int i = 1; i < pts - 1; i++) {
-    addFace(0, i, i + 1); //Top face
-    addFace(pts, i + pts, i + 1 + pts); //Bottom face
-}
-`````````````````````````````````````
-
-**`fromHeightField`**
-
-    For the heightfield generation algorithm, we want to iterate over each pixel in the input image and map it to a vertex in our mesh. Then we connect adjacent vertices to form the faces. We generate vertices column by column, row by row. A pixel at `(x,z)` that has grayscale value `c` will be mapped to a vertex at position `(XZScale * x, YScale * c, XZScale * z)`. Then to define the faces we write:
-
-`````````````````````````````````````
-int offset;
-for(int x = 1; x < width; ++x) {
-		for(int z = 1; z < height; ++z) {
-        offset = (x - 1) * height;
-		mesh.addFace(offset + (z - 1), offset + z, offset + height + (z - 1));
-		mesh.addFace(offset + height + (z - 1), offset + z, offset + height + z);
-		}
-	}
-`````````````````````````````````````
-
-**`makeGlass`**
-
-    For the glass generation algorithm, we make a series of cylindric sections with even height but differing radii. We use a helper method to generate each cylindric section. We generate the sections from top to bottom, making first the vertices in the outer circle, and then those in the inner circle. Each circle has a number of points equal to the parameter `pts`, and we generate a number of cylindric sections equal to the parameter `sections`. We then define the radius of the circle draw at each height according to `callback(height)` where `callback` is a function `float->float` passed as a parameter. Then we define our faces in the same manner described in `makeCylinder`, except with an additional `offset = 2 * pts * index` where index is the number of circles already generated.
-
-**`fromHeightFieldRing`**
-
-    This algorithm is extremely similar to the `fromHeightField` method, except instead of mapping the height field above a flat area, we map above the inside of a ring instead. For the entire ring to appear to have a smooth texture, we map the height field to half of the ring, and then mirror it across the other half. We then need to change our scale parameters to `RScale` and `ZScale`, since the `x` and `y` coordinates will be defined by the radius of the entire ring and brightness of the height field.
-
-Implementation
-==================================
-    In implementing these algorithms, we relied primarily on our [Mesh](file:///C:/Users/cs371/Documents/1-meshes/build/doc/class_mesh.html) class. This class abstracted away the logic for maintaining the vertex and face arrays and converting them to an `.OFF` file. The bulk of the algorithms were simply for loops that generated the requisite vertices and faces. An important consideration to keep in mind is that the vertices are enumerated as they are added to the mesh, and so they should be added in a way that creates a logical organization. Caring about this ordering is the reason why many of our methods have consecutive loops that iterate over the same ranges.
-
-Results
+Topic Overview
 ==================================
 
-![Cube](file:///C:/Users/cs371/Documents/1-meshes/doc-files/Cube.jpg)
-
-![Cylinder](file:///C:/Users/cs371/Documents/1-meshes/doc-files/Cylinder.jpg)
-
-![Heightfield](file:///C:/Users/cs371/Documents/1-meshes/doc-files/Heightmap.jpg)
-
-![Heightfield Source](file:///C:/Users/cs371/Documents/1-meshes/doc-files/gbg_heightmap.png)
-
-![Glass](file:///C:/Users/cs371/Documents/1-meshes/doc-files/Glass.jpg)
-
-![Watertight](file:///C:/Users/cs371/Documents/1-meshes/doc-files/GlassWatertight.jpg)
-
-Custom Scene
+Design
 ==================================
 
-![Halo Ring](file:///C:/Users/cs371/Documents/1-meshes/doc-files/Halo.jpg)
 
-![Ring Source](file:///C:/Users/cs371/Documents/1-meshes/doc-files/HaloSource.png)
+Correctness Results
+==================================
+**MVP Goals**
+We will eventually be able to procedurally generate trees that look similar to these:
 
-Questions
+![](tree1.png)
+![](tree2.jpg) ![](tree3.jpg) ![](tree4.jpg)
+
+The leaves will be mapped onto quads, so they will look similar to this:
+
+![](leaves1.jpg) ![](leaves2.jpg)
+
+It is easy for us to imagine an algorithm to generate a tree by recursively adding smaller cylinders to a larger cylinder. However, to make a realistic tree, the branching has to be somewhat randomized.
+
+We aim to be able to generate trees that don't look generic and have varying shapes and sizes, like these trees:
+
+![](design1.jpg)
+![](design2.jpg)
+
+Quality Results
+==================================
+**Polish Goals**
+
+For polish, we will map bark textures to our trees.
+
+We also want the branches of our trees to be smoothly connected:
+
+![](curvegoals.jpg)
+
+Evocative Result
+==================================
+For our custom scene, we would like to make an orchard with trees that grow different things. For example, we could have an apple tree, a money tree, a teapot tree, and a wine glass tree in our orchard. This will show the variation between same "species" of procedurally generated trees.
+
+![](design3.jpg)
+![](design4.jpg)
+
+Additionally, we would like to make a forest of all types of different trees.
+
+Finally, we think it would be cool to make trees with roots that are mapped to the surface of a sphere, or planet, like in the Little Prince.
+
+![](design5.jpg)
+
+Self Evaluation
 ==================================
 
-  1. To simulate the reflection of the mountains without actually making the surface reflective, instead mirror the height field across the water surface, and make the water mostly transparent. Then you would add a more solid water surface just below the mirrored terrain.
-        *******************************************
-        *                     Terrain             *
-        *  Translucent _________________________  *
-        * water surface                           *
-        *                Mirrored Terrain         *
-        *                                         *
-        *    Solid     _________________________  *
-        * water surface                           *
-        *******************************************
-  2. Although quadrilaterals would be more space efficient and easier to model, we use triangles as the primitive because crucially, no matter the position of the verticies, the primitive is convex and planar. This makes it much easier to determine what the visible portion of the primative is from any point in space.
-
-  3. Start at full resolution, then for each pixel, iteratively try to halve it's resolution until the standard error in the area it covers becomes larger than some threshold. Then add vertices only at the edges of the defined areas.
-
-Reflection
+Schedule
 ==================================
 
-Software Engineering: 
-
-    -Learned to go from the documentation of a file format to actually generating files with that format.
-
-    -Learned better workflow planning, Draft, MVP, Polish.
-
-    -Learned how to build C++ programs with multiple classes.
-
-    -Learned how to pass C++ functions as parameters.
-
-Algorithms:
-
-    -Learned how to enumerate and define the topology of a mesh.
-
-    -Learned how to map a heightfield around an uneven surface.
-
-    -Learned how to define a mesh in terms of an unknown parameter function.
-
-
-Math:
-
-    -Practice with trigonometry.
+Change Log
+==================================
 
 <!-- Markdeep: -->
 <style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace;}</style><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>

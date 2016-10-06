@@ -12,7 +12,7 @@
     <ClInclude Include="source\App.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Mesh.h">
+    <ClInclude Include="source\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -26,6 +26,7 @@
       <Filter>Scene Files</Filter>
     </None>
     <None Include="journal\journal.md.html" />
+    <None Include="doc-files\report.md.html" />
   </ItemGroup>
   <ItemGroup>
     <Filter Include="Source Files">

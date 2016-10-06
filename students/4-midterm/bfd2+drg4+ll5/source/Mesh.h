@@ -6,14 +6,6 @@
 
   Data structure used to hold information about a mesh as it is constructed.
  */
-/**
-  \file Mesh.h
-
-  The G3D 10.00 default starter app is configured for OpenGL 4.1 and
-  relatively recent GPUs.
- */
-
-/** \brief Application framework. */
 
 class Mesh {
 	protected:
