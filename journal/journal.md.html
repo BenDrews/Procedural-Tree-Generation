@@ -1,0 +1,83 @@
+﻿                  <meta charset="utf-8">
+                 **Development Journal**
+
+
+2016-09-19: Halo Ring
+====================================================
+
+For the custom scene, I simiply adjusted the `fromHeightField` method to map onto the inside of a ring to make a model similar to the Halo Ring from the game series Halo. Then I ran a once off method to generate the ring edge model.
+
+![Halo Ring](2016-09-19_001_starter_r609_g3d_r762__Halo_Ring.jpg)
+
+2016-09-18: Glass Generation
+=============================================================
+
+To start developing this method, I made a helper, `addCylindricSection` to abstract away the addition of rings to the glass at varying radii and height. From there most of my time was spent working on how to pass a function as a parameter to define the edge of the glass with arbitrary position. After the method was created, more time was spent trying to tune the silouette function to generate a shape resembling a glass.
+
+![Wrong equation](2016-09-18_001_starter_r570_g3d_r762__Wrong_equation.jpg)
+
+![Not quite right](2016-09-18_002_starter_r570_g3d_r762__Not_quite_right.jpg)
+
+![MVP Wine Glass](2016-09-18_000_starter_r570_g3d_r762__MVP_Wine_Glass.jpg)
+
+![Wine Glass](2016-09-19_003_starter_r609_g3d_r762__Wine_Glass.jpg)
+
+![Glass Watertightness](2016-09-19_004_starter_r609_g3d_r762__Glass_Watertightness.jpg)
+
+2016-09-18: Heightmap
+=============================================================
+
+Thanks to some good fortune, much of this method's logic was already written in last weeks lab. All that was required was a transposition to a `Mesh` object rather than a collection of cubes in a `Scene.Any` file, and the face definitions.
+
+![Gothenburg, Sweden](2016-09-19_000_starter_r609_g3d_r762__Gothenburg__Sweden.jpg)
+
+2016-09-18: Cylinder Generation
+=============================================================
+
+Once the actual `Mesh` class was completed it was simple to hook up to a set of vertices and generate the mesh. The difficulty here was getting the GUI components to work, but after a little tinkering and a lot of documentation reading, it all works.
+
+![Cylinder](2016-09-19_002_starter_r609_g3d_r762__Cylinder.jpg)
+
+2016-09-15: Mesh Class
+=============================================================
+
+Spent a lot of time figuring out how to create my own class and get it to interact with the `App` class. Eventually realized that although I had the header and source files in the same directory as the `App.h` and `App.cpp` files, they weren't in the Header and Source folders in the actually solution file. After that I worked on the actually logic for the `Mesh` class. The only difficulty encountered there was with `G3D::Array` which was giving me problems when I tried to make an array of `Poly` objects. Eventually I just changed the `G3D::Array` objects to `std::vector`.
+
+2016-09-15: Learning `.OFF`
+=============================================================
+
+Read through `.OFF` documentation to learn the format. Encountered a parse error bug, which was caused by promising the file 6 faces and then only providing one. Once that was corrected I had my very own cube mesh.
+
+![White Cube](2016-09-19_005_starter_r609_g3d_r762__White_Cube.jpg)
+
+2016-09-15: Inital Planning
+=====================================================
+
+![Tuned Wine Glass](2016-09-18_003_starter_r570_g3d_r762__Tuned_Wine_Glass.jpg)
+
+
+ Task                 | Description                                                |Planned Time(h)| Actual Time
+ ---------------------|------------------------------------------------------------|--------------:|------------:
+ Report Draft         | Formatted Markdeep document with placeholder text.         |     0.5      |    0.5
+ `makeCube` Draft     | Learn about the `.off` format and add method signature.    |     0.25      |   0.5
+ `makeCylinder` Draft | Empty function with correct signature connected to GUI.    |     0.25      |   0.5
+ `fromHeightfield` Draft | Add signature to header file and connect function to GUI. | 0.125       |   0.125
+ `makeGlass` Draft    | Add signature to header file and connect function to GUI.  |     0.25     |    0.125
+ `makeCube` MVP       | Create the function to generate the model                  |     0.125     |   0.125
+ `makeCylinder` MVP   | `for` loops generating all correct vertices and possibly-buggy faces. |  0.25      |   1
+ `fromHeightfield` MVP | Convert `fromDepthfield` method from last week to generate a mesh. | 0.5 |  0.25
+ `makeGlass` MVP      | `for` loops to generate correct vertices and possibly-buggy faces. | 0.5 |  1
+ Report MVP           | Probably-correct answers and quick screenshots.            |     0.5      |   0.25 
+ `makeCylinder` Polish| 100% correct and add GUI for number of slices.             |     0.25      |  0.5
+ `fromHeightfield` Polish | 100% correct and add GUI for file selection.           |     0.25      |  0.125
+ `makeGlass` Polish   | 100% correct and add GUI for number of slices.             |     0.25      |  0.5
+ Report Polish        | Tweak table layout, rewrite question#5 answers from scratch, grammar and spelling pass, take more demo scene shots and Photoshop contrast on them. |  0.50 |  1
+ Custom Model Draft   | Decide on a model to attempt.                               |     0.25     |  0.25
+ Custom Model Polish  | Add methods to generate the model. Add textures, skybox, etc. |    1       |   1
+Total                 |                                                            |    5.5  | 7.25
+ [Table [tbl:workflow]: Planning table.]
+
+
+
+<!-- Markdeep: -->
+<style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace;}</style><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
