@@ -14,7 +14,7 @@
     <ProjectGuid>{B87D787E-E674-465A-AED3-8264ED17DFB1}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
     <RootNamespace>starter</RootNamespace>
-    <ProjectName>starter</ProjectName>
+    <ProjectName>4-midterm</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
@@ -86,8 +86,8 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Mesh.h" />
     <ClInclude Include="source\App.h" />
+    <ClInclude Include="source\Mesh.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\App.cpp" />
@@ -98,6 +98,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="data-files\test.Scene.Any" />
+    <None Include="doc-files\report.md.html" />
     <None Include="Doxyfile" />
     <None Include="journal\journal.md.html" />
     <None Include="mainpage.dox" />
