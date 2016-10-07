@@ -37,3 +37,7 @@ void Mesh::toOFF() {
 	}
 	tOut.commit();
 }
+
+int Mesh::numVertices() {
+    return vertices.size();
+}
