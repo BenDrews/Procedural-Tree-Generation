@@ -99,8 +99,8 @@ void App::makeGUI() {
 
 void App::makeTree() {
     Mesh tree = Mesh("tree.OFF");
-    float length = 5.0f;
-    makeBranch(tree, CoordinateFrame(), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 2, 50, 50);
+    float length = 1.0f;
+    makeBranch(tree, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 5, 50, 50);
     tree.toOFF();
 }
 
@@ -110,25 +110,26 @@ void App::makeBranch(Mesh& mesh, const CoordinateFrame& initial, float& length, 
         int index = mesh.numVertices();
 	    float sectionHeight;
 	    float sectionRadius;
-        CoordinateFrame branchEnd = CoordinateFrame::fromXYZYPRDegrees(0, length, 0, 0, 0, 0) * initial;
-
+        Point3 branchEnd = initial.pointToWorldSpace(Point3(0,length*(9.0f/10.0f),0));
 	    //Adding verticies for outer circle of the top lip.
 	    for(int i = 0; i < circlePoints; ++i) {
 	    	float angle = (i * 2.0f * pif()) / circlePoints;
             sectionRadius = branchRadius(length, recursionDepth);
-            Vector3 vec = Vector3(cos(angle) * sectionRadius, 0.0f, sin(angle) * sectionRadius);
-            vec = branchEnd.pointToWorldSpace(vec);
+            Vector3 vec = Vector3(cos(angle) * sectionRadius, length, sin(angle) * sectionRadius);
+            vec = initial.pointToWorldSpace(vec);
 	    	mesh.addVertex(vec.x, vec.y, vec.z);  
 	    }
 	    //Adding outer and inner vertices/faces for the sides of the glass.
 	    for(int i = 0; i < branchSections; ++i) {
 	    	sectionRadius = branchRadius(length - (i * length / float(branchSections)), recursionDepth);
-	    	addCylindricSection(mesh, circlePoints, CoordinateFrame::fromXYZYPRDegrees(0, length - (i * length / float(branchSections)), 0, 0, 0, 0) * initial , sectionRadius);
+	    	addCylindricSection(mesh, circlePoints, initial , sectionRadius);
 	    }
 
         float newLength = length / 2.0f;
-        makeBranch(mesh, branchEnd * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 30.0f, 0.0f), newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-        makeBranch(mesh, branchEnd * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -30.0f, 0.0f), newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        makeBranch(mesh, (initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -60.0f, 0.0f)) + branchEnd, newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        makeBranch(mesh, (initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 60.0f, 0.0f)) + branchEnd, newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        //makeBranch(mesh, (initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, -30.0f, 0.0f)) + branchEnd, newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        //makeBranch(mesh, (initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 30.0f, 0.0f)) + branchEnd, newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
     }    
 }
 
@@ -158,5 +159,5 @@ Vector3 App::spineCurve(float t) {
 
 
 float App::branchRadius(float t, int recursionDepth) {
-    return 1.0f + recursionDepth;
+    return (float)recursionDepth/10;;
 }

@@ -5,6 +5,26 @@
             drg4@williams.edu
             ll5@williams.edu
 
+2016-10-08: Debugging our Tree
+===========================================================
+So for some reason our trees are looking like this:
+
+![](secondTree.png)
+
+For debugging purposes, I made a tree with no branches with a pitch of 30 degrees.
+
+![](branchEndBug.png)
+
+So it seems like the coordinate frame translation is our issue. After looking through the code, I noticed that we had one coordinate frame for our branch start and one for our branch end. To fix this, I simply made one coordinate frame for the entire branch.
+
+![](floatingTrees.png)
+
+After fixing that bug, the second set of branches are floating above their parent branch. I was wondering if it had to do with the rotation of the second set of branches, so I rotated the entire set of branches.
+
+![](rotatedTree.png)
+
+So it has nothing to do with that, and is something to do with how the recursion is handled.
+
 2016-10-06: Inital Design
 =====================================================
 **makeTree**
@@ -18,6 +38,10 @@ Parameters: Initial CoordinateFrame, length, callback function that returns a Co
 This method will call Ben's addCylindricSection method.
 
 When the method reaches zero recursive depth, it calls addLeaves to add leaves to the end of the branch.
+
+After adding our code, the tree we generate looks like this:
+
+![](firstTree.png)
 
 
 2016-10-06: Inital Planning
