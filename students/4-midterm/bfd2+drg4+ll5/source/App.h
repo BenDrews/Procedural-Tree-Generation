@@ -15,10 +15,10 @@ protected:
     void makeGUI();
 
     void makeTree();
-    void makeBranch(Mesh& mesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float)> branchRadius, int recursionDepth, int circlePoints = 10, int branchSections = 10) const;
+    void makeBranch(Mesh& mesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int)> branchRadius, int recursionDepth, int circlePoints = 10, int branchSections = 10) const;
 	void addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const;
     Vector3 spineCurve(float t);
-    float branchRadius(float t);
+    float branchRadius(float t, int recursionDepth);
 public:
     
     App(const GApp::Settings& settings = GApp::Settings());
