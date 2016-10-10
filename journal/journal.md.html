@@ -7,14 +7,25 @@
 
 
 
-2016-10-09: Debugging our Tree pt2
+
+2016-10-10: Playing with recursion levels and new lengths (Diego)
+==============================================================
+By upping the recursion levels to 10 and making the new lengths of branches 4/5 of the old branch length, we got this bush structure
+
+![](accidentalBush.png)
+
+By taking the same exact rule set and just changing the new lengths of branches to be 3/5 of the old branch length, we got this tree structure
+
+![](accidentalRealTree.png)
+
+2016-10-09: Debugging our Tree pt2 (Ben + Diego)
 ==========================================================
 So the issue with our floating trees from before was that instead of moving the coordinate frames to the branch end, we were simply translating them by that distance. This was fixed by setting the translation of the coordinate frames to be at the end of the branch.
 
 ![](goodTree.png)
 
 
-2016-10-08: Debugging our Tree
+2016-10-08: Debugging our Tree (Diego)
 ===========================================================
 So for some reason our trees are looking like this:
 
@@ -34,7 +45,7 @@ After fixing that bug, the second set of branches are floating above their paren
 
 So it has nothing to do with that, and is something to do with how the recursion is handled.
 
-2016-10-06: Inital Design
+2016-10-06: Inital Design (Ben + Diego + Lylia)
 =====================================================
 **makeTree**
 Parameters: branchLength, recursiveDepth
@@ -53,7 +64,7 @@ After adding our code, the tree we generate looks like this:
 ![](firstTree.png)
 
 
-2016-10-06: Inital Planning
+2016-10-06: Inital Planning (Ben + Diego + Lylia)
 =====================================================
 **MVP Goals**
 We will eventually be able to procedurally generate trees that look similar to these:
