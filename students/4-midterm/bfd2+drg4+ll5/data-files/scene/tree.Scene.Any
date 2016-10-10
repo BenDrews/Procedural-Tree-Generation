@@ -1,0 +1,38 @@
+// -*- c++ -*-
+{
+    name = "Tree Testing";
+    
+    models = {
+       cubeModel = ArticulatedModel::Specification {
+            filename = "tree.OFF";
+            preprocess = {
+                setMaterial(all(), Color3(0, 1, 0));
+            };
+       };
+    };
+    
+    entities = {
+       skybox = Skybox {
+            texture = "cubemap/mpa116/mpa116*.png";
+       };
+       
+       sun = Light {
+            attenuation = ( 0, 0, 1 );
+            bulbPower = Power3(4e+006);
+            frame = CFrame::fromXYZYPRDegrees(-15, 207, -41, -164, -77, 77);
+            shadowMapSize = Vector2int16(2048, 2048);
+            spotHalfAngleDegrees = 5;
+            spotSquare = true;
+            type = "SPOT";
+        };
+
+        cube0 = VisibleEntity {
+            model = "cubeModel";
+            frame = CFrame::fromXYZYPRDegrees(0, 0, 0, 0, 0, 0);
+        };
+
+        camera = Camera {
+            frame = CFrame::fromXYZYPRDegrees(0, 0, 5);
+        };
+    };
+};

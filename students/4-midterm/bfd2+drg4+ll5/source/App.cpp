@@ -69,13 +69,14 @@ void App::onInit() {
     // developerWindow->videoRecordDialog->setScreenShotFormat("PNG");
     // developerWindow->videoRecordDialog->setCaptureGui(false);
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
+    makeTree();
     loadScene(
         //"G3D Sponza"
-        "G3D Triangle" // Load something simple
+        "Tree Testing" // Load something simple
         //developerWindow->sceneEditorWindow->selectedSceneName()  // Load the first scene encountered 
         );
 
-    makeTree();
+
 }
 
 
@@ -100,7 +101,7 @@ void App::makeGUI() {
 void App::makeTree() {
     Mesh tree = Mesh("tree.OFF");
     float length = 1.0f;
-    makeBranch(tree, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 5, 50, 50);
+    makeBranch(tree, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 10, 3, 1);
     tree.toOFF();
 }
 
@@ -111,6 +112,7 @@ void App::makeBranch(Mesh& mesh, const CoordinateFrame& initial, float& length, 
 	    float sectionHeight;
 	    float sectionRadius;
         Point3 branchEnd = initial.pointToWorldSpace(Point3(0,length*(9.0f/10.0f),0));
+        Point3 branchMid = initial.pointToWorldSpace(Point3(0,length*(6.0f/10.0f),0));
 	    //Adding verticies for outer circle of the top lip.
 	    for(int i = 0; i < circlePoints; ++i) {
 	    	float angle = (i * 2.0f * pif()) / circlePoints;
@@ -125,11 +127,26 @@ void App::makeBranch(Mesh& mesh, const CoordinateFrame& initial, float& length, 
 	    	addCylindricSection(mesh, circlePoints, initial , sectionRadius);
 	    }
 
-        float newLength = length / 2.0f;
-        makeBranch(mesh, (initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -60.0f, 0.0f)) + branchEnd, newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-        makeBranch(mesh, (initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 60.0f, 0.0f)) + branchEnd, newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-        //makeBranch(mesh, (initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, -30.0f, 0.0f)) + branchEnd, newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-        //makeBranch(mesh, (initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 30.0f, 0.0f)) + branchEnd, newLength, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        float newLength1 = length / 2.0f;
+        float newLength2 = length / 3.0f;
+        float newLength3 = length / 4.0f;
+        float newLength4 = 3*length / 5.0f;
+
+        CoordinateFrame branch1 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -65.0f, 0.0f);
+        branch1.translation = branchEnd;
+        CoordinateFrame branch2 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 60.0f, 0.0f);
+        branch2.translation = branchEnd;
+        CoordinateFrame branch3 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
+        branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 68.0f, 0.0f);
+        branch3.translation = branchEnd;
+        CoordinateFrame branch4 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
+        branch4 = branch4 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -55.0f, 0.0f);
+        branch4.translation = branchEnd;    
+
+        makeBranch(mesh, branch1, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        makeBranch(mesh, branch2, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        makeBranch(mesh, branch3, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        makeBranch(mesh, branch4, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
     }    
 }
 
@@ -159,5 +176,5 @@ Vector3 App::spineCurve(float t) {
 
 
 float App::branchRadius(float t, int recursionDepth) {
-    return (float)recursionDepth/10;;
+    return ((float)recursionDepth/100.0f);
 }
