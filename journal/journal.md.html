@@ -8,6 +8,24 @@
 
 
 
+2016-10-10: Adding Leaves (Diego)
+===========================================================
+To add leaves, all we're going to do is have a separate OFF file. At the last recursion level, we will add a double sided triangle straight up in the coordinate frame given by the branches. Then in the scene, we will just put the two models at the same position, one colored brown and the other colored green.
+
+Implementing this was fairly easy given how we set up our recursive branch function. 
+
+![](firstLeaves.png)
+
+The leaves' sizes were decided based on the length given to it by its parent branch. After seeing the first result, I decided to make the leaves a little bigger.
+
+![](secondLeaves.png)
+
+Then just for fun, I decided to see how the leaves looked with different rule sets.
+
+![](thirdLeaves.png)
+
+![](fourthLeaves.png)
+
 2016-10-10: Playing with recursion levels and new lengths (Diego)
 ==============================================================
 By upping the recursion levels to 10 and making the new lengths of branches 4/5 of the old branch length, we got this bush structure
