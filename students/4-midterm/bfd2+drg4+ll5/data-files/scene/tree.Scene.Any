@@ -3,10 +3,16 @@
     name = "Tree Testing";
     
     models = {
-       cubeModel = ArticulatedModel::Specification {
+       treeModel = ArticulatedModel::Specification {
             filename = "tree.OFF";
             preprocess = {
-                setMaterial(all(), Color3(0, 1, 0));
+                setMaterial(all(), Color3(0.65f, 0.15f, 0.15f));
+            };
+       };
+        leafModel = ArticulatedModel::Specification {
+            filename = "leaf.OFF";
+            preprocess = {
+                setMaterial(all(), Color3(0.0f, 1.0f, 0.0f));
             };
        };
     };
@@ -26,8 +32,13 @@
             type = "SPOT";
         };
 
-        cube0 = VisibleEntity {
-            model = "cubeModel";
+        tree = VisibleEntity {
+            model = "treeModel";
+            frame = CFrame::fromXYZYPRDegrees(0, 0, 0, 0, 0, 0);
+        };
+
+        leaves = VisibleEntity {
+            model = "leafModel";
             frame = CFrame::fromXYZYPRDegrees(0, 0, 0, 0, 0, 0);
         };
 
