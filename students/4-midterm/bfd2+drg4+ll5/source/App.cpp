@@ -102,7 +102,7 @@ void App::makeTree() {
     Mesh tree = Mesh("tree.OFF");
     Mesh leafMesh = Mesh("leaf.OFF");
     float length = 1.0f;
-    makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 7, 3, 1);
+    makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 10, 3, 1);
     tree.toOFF();
     leafMesh.toOFF();
 }
@@ -129,41 +129,44 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
 	    	addCylindricSection(mesh, circlePoints, initial , sectionRadius);
 	    }
 
-        float newLength1 = length / 2.0f;
-        float newLength2 = length / 3.0f;
-        float newLength3 = length / 4.0f;
-        float newLength4 = 3*length / 5.0f;
+        float newLength1 = 3*length / 5.0f;
+        float newLength2 = 4*length / 5.0f;
 
-        CoordinateFrame branch1 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -130.0f, 0.0f);
-        branch1.translation = branchMid;
-        CoordinateFrame branch2 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 130.0f, 0.0f);
-        branch2.translation = branchMid;
+
+        CoordinateFrame branch1 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
+        branch1.translation = branchEnd;
+        CoordinateFrame branch2 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
+        branch2 = branch2 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 25.0f, 0.0f);        
+        branch2.translation = branchEnd;
         CoordinateFrame branch3 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
-        branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 130.0f, 0.0f);
-        branch3.translation = branchMid;
-        CoordinateFrame branch4 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
-        branch4 = branch4 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -130.0f, 0.0f);
-        branch4.translation = branchMid;    
-
-        CoordinateFrame branch5 = initial;
+        branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -25.0f, 0.0f);
+        branch3.translation = branchEnd;
+        CoordinateFrame branch4 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
+        //branch4 = branch4 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -60.0f, 0.0f);
+        branch4.translation = branchEnd;    
+        CoordinateFrame branch5 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
+        //branch3 = branch5 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -25.0f, 0.0f);
         branch5.translation = branchEnd;
 
-        if(recursionDepth < 7){
-            makeBranch(mesh, leafMesh, branch1, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-            makeBranch(mesh, leafMesh, branch2, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-            makeBranch(mesh, leafMesh, branch3, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-            makeBranch(mesh, leafMesh, branch4, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        if(recursionDepth < 10){
+            makeBranch(mesh, leafMesh, branch1, newLength1, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+            makeBranch(mesh, leafMesh, branch2, newLength1, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+            makeBranch(mesh, leafMesh, branch3, newLength1, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+            makeBranch(mesh, leafMesh, branch4, newLength1, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
         }
-        makeBranch(mesh, leafMesh, branch5, newLength4, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+        makeBranch(mesh, leafMesh, branch5, newLength2, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
 
-    }else{
-        addLeaves(leafMesh, length, initial);
+        if(recursionDepth == 1){
+            CoordinateFrame leaf = initial;
+            leaf.translation = branchEnd;
+            addLeaves(leafMesh, length, leaf);
+        }
     }
 }
 
 void App::addLeaves(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const{
     int index = leafMesh.numVertices();
-    float l = length*4.0f;
+    float l = length;
     Vector3 vec1 = Vector3(l / 2.0f, 0.0f, 0.0f);
     vec1 = initial.pointToWorldSpace(vec1);
     Vector3 vec2 = Vector3(-l / 2.0f, 0.0f, 0.0f);
