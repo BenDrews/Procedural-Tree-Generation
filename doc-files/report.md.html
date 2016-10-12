@@ -5,17 +5,52 @@
             drg4@williams.edu
             ll5@williams.edu
 
-Teaser image here!!!
+Teaser Image here
 
-Introduction
+Introduction 
 ==================================
-sup
+
+
+
 
 Specification
 ==================================
 
-Topic Overview
+1. A user interface with the following controls:
+    1. Integer number box for the max recursion depth
+    2. Slider to use L-system generation or Space Colonization generation
+    3. Tree phenotype dropdown list
+    4. Generate button to start the generation 
+
+2. When the "Generate" button is pressed, the program:
+    1. Immediately displays a waiting screen
+    2. Generates the tree
+    3. Places it into the "tree testing" scene and loads that scene
+
+3. Tree Generation
+    1. makeTree function that starts the generation
+    2. makeBranch function that adds a branch to the tree. Different functions can be made for different tree phenotypes.
+    3. Mesh class that stores all the vertices and faces. This class also handles the actual file generation.
+    4. makeCylindricSection function that adds a cylinder in a given coordinate frame to the Mesh.
+    5. makeLeaves function that adds leaves to a second mesh object.
+
+4. Output two OFF files, one for the tree branches, and one for the tree leaves.
+
+Program Evaluation Metric:
+- Graph the time it took to render a tree model versus the number of child branches with a set recursion depth of 7
+- Graph the time it took to render a tree model versus the recursion depth with three child branches at each recursion.
+
+![Wireframe of leafless tree to demonstrate proper branch generation](tree1.png)
+
+Three different tree phenotypes created with the same generation algorithm:
+
+- ![](tree2.jpg)
+- ![](tree3.jpg)
+- ![](tree4.jpg)
+Topic Overview 
 ==================================
+
+
 
 Design
 ==================================
@@ -23,23 +58,11 @@ Design
 
 Correctness Results
 ==================================
-**MVP Goals**
-We will eventually be able to procedurally generate trees that look similar to these:
-
-![](tree1.png)
-![](tree2.jpg) ![](tree3.jpg) ![](tree4.jpg)
-
-The leaves will be mapped onto quads, so they will look similar to this:
-
-![](leaves1.jpg) ![](leaves2.jpg)
-
-It is easy for us to imagine an algorithm to generate a tree by recursively adding smaller cylinders to a larger cylinder. However, to make a realistic tree, the branching has to be somewhat randomized.
-
-We aim to be able to generate trees that don't look generic and have varying shapes and sizes, like these trees:
-
-![](design1.jpg)
-![](design2.jpg)
-
+![Wireframe of leafless tree](leafless.png)
+![Same tree as above with leaves](leafful.png)
+![Tree #1 with L-system generation](gTree1.png)
+![Tree #2 with L-system generation](gTree2.png)
+![Tree #3 with L-system generation](gTree3.png)
 Quality Results
 ==================================
 **Polish Goals**
@@ -69,8 +92,25 @@ Self Evaluation
 Schedule
 ==================================
 
+Task                  | Description                                                |Date           | 
+ ---------------------|------------------------------------------------------------|--------------:|
+ Report Draft    (BDL)| Basic answers/placeholders inputted                        |     10/06     |   
+ Code Draft      (BDL)| Code with basic format and structure done                  |     10/07     |  
+fix CFrame bug     (D)| Cylinders won't generate at an angle, fix                  |     10/08     |   
+fix floating tree bug (BD)| Branches are floating above their parents, fix         |     10/09     |  
+ Add Leaves          (D)| Add leaf generation                                      |     10/10     |  
+ Report MVP        (BDL)| Get to Report MVP                                        |     10/12     |  
+ Add Space Colonization(B)| Add space colonization tree generation algorithm       |     10/13     |  
+ Add realistic radius  (D)| Add realistic tree radius function                     |     10/13     |  
+ Add GUI Functionality (L)| Add elements from specification to the GUI             |     10/13     |  
+
+   
 Change Log
 ==================================
-
+1. Modified Mesh class from Ben's meshes lab to suit this projects needs. Added general program structure.
+2. Fixed CFrame bug, cylindric sections will now generate at an angle
+3. Fixed floating tree bug, child branches are now connected to their parents
+4. Added leaf generation
+5. Added rudimentary space colonization
 <!-- Markdeep: -->
 <style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace;}</style><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
