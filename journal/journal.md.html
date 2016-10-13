@@ -6,11 +6,26 @@
             ll5@williams.edu
 
 
+2016-10-13: Adding some GUI (Lylia)
+=====================================================
+I added GUI to the App class that control several parameters for tree creation, including the max recursion depth, initial height of the tree, number of circle points in the generated cylinders, number of branch sections, and a drop-down list to choose different phenotype callback functions.
+
+
+2016-10-13: Abstracting makeBranch method (Lylia)
+=====================================================
+Broke up the makeBranch method so that it takes a callback function that determines the dimensions of the branches it makes in the recursive calls of makeBranch. This will allow us to write different callback functions to specify the rotation and translation of the next branches, how many next branches there will be, and what their lengths will be in relation to the previous branch. Each callback function will return an array of BranchDimensions, which is a new class I wrote to hold the CoordinateFrames and lengths of the next branches that will be made.
+
+The first callback function I implemented was Diego's spiky tree:
+
+![Spiky tree generated with 4 recursive calls](spikyTreeCallback4.png width=300px) ![Spiky tree generated with 7 recursive calls](spikyTreeCallback7.png width=300px)
+
+I'm not sure if this is exactly how Diego's spiky tree looked before I abstracted parts of makeBranch, so I'll have to check with him to verify that all is well. 
 
 
 2016-10-13: Adding OBJ file support (Diego)
 =====================================================
 Added OBJ file support to the Mesh class. This required me to read up on the OBJ file format but once I understood how to declare the vertices and the faces, the transition to OBJ from OFF was fairly simple. There is no texture support yet, but Ben will work on that tomorrow.
+
 
 2016-10-10: Adding Leaves (Diego)
 ===========================================================
@@ -30,6 +45,7 @@ Then just for fun, I decided to see how the leaves looked with different rule se
 
 ![](fourthLeaves.png)
 
+
 2016-10-10: Playing with recursion levels and new lengths (Diego)
 ==============================================================
 By upping the recursion levels to 10 and making the new lengths of branches 4/5 of the old branch length, we got this bush structure
@@ -39,6 +55,7 @@ By upping the recursion levels to 10 and making the new lengths of branches 4/5 
 By taking the same exact rule set and just changing the new lengths of branches to be 3/5 of the old branch length, we got this tree structure
 
 ![](accidentalRealTree.png)
+
 
 2016-10-09: Debugging our Tree pt2 (Ben + Diego)
 ==========================================================
@@ -66,6 +83,7 @@ After fixing that bug, the second set of branches are floating above their paren
 ![](rotatedTree.png)
 
 So it has nothing to do with that, and is something to do with how the recursion is handled.
+
 
 2016-10-06: Inital Design (Ben + Diego + Lylia)
 =====================================================
