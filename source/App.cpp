@@ -104,12 +104,12 @@ void App::makeGUI() {
 
 
 void App::makeTree() {
-    Mesh tree = Mesh("tree.OFF");
-    Mesh leafMesh = Mesh("leaf.OFF");
+    Mesh tree = Mesh("tree");
+    Mesh leafMesh = Mesh("leaf");
     float length = 1.0f;
     makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 7, 3, 1);
-    tree.toOFF();
-    leafMesh.toOFF();
+    tree.toOBJ();
+    leafMesh.toOBJ();
 }
 
 

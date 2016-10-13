@@ -93,7 +93,6 @@
   <ItemGroup>
     <ClCompile Include="source\App.cpp" />
     <ClCompile Include="source\Mesh.cpp" />
-    <ClCompile Include="source\Tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources.rc" />
