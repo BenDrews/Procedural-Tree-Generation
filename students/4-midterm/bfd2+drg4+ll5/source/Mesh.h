@@ -18,5 +18,6 @@ class Mesh {
 		void addFace(int f1, int f2, int f3);
 		Mesh(const String& fn);
 		void toOFF();
+        void toOBJ();
         int numVertices();
 };

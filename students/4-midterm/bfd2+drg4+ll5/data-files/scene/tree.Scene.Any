@@ -4,13 +4,13 @@
     
     models = {
        treeModel = ArticulatedModel::Specification {
-            filename = "tree.OFF";
+            filename = "tree.OBJ";
             preprocess = {
                 setMaterial(all(), Color3(0.65f, 0.15f, 0.15f));
             };
        };
         leafModel = ArticulatedModel::Specification {
-            filename = "leaf.OFF";
+            filename = "leaf.OBJ";
             preprocess = {
                 setMaterial(all(), Color3(0.0f, 1.0f, 0.0f));
             };
