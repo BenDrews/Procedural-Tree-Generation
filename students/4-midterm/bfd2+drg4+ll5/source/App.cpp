@@ -102,7 +102,7 @@ void App::makeTree() {
     Mesh tree = Mesh("tree.OFF");
     Mesh leafMesh = Mesh("leaf.OFF");
     float length = 1.0f;
-    makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 10, 3, 1);
+    makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 7, 3, 1);
     tree.toOFF();
     leafMesh.toOFF();
 }
@@ -115,7 +115,8 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
 	    float sectionRadius;
         Point3 branchEnd = initial.pointToWorldSpace(Point3(0,length,0));
         Point3 branchMid = initial.pointToWorldSpace(Point3(0,length*(6.0f/10.0f),0));
-	    //Adding verticies for outer circle of the top lip.
+	    
+        // Add vertices of intial circle at the top of the branch we are currently making to mesh
 	    for(int i = 0; i < circlePoints; ++i) {
 	    	float angle = (i * 2.0f * pif()) / circlePoints;
             sectionRadius = branchRadius(length, recursionDepth);
@@ -123,10 +124,12 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
             vec = initial.pointToWorldSpace(vec);
 	    	mesh.addVertex(vec.x, vec.y, vec.z);  
 	    }
-	    //Adding outer and inner vertices/faces for the sides of the glass.
+	    
+        // Add vertices of circles underneath the initial circle to mesh
 	    for(int i = 0; i < branchSections; ++i) {
 	    	sectionRadius = branchRadius(length - (i * length / float(branchSections)), recursionDepth);
-	    	addCylindricSection(mesh, circlePoints, initial , sectionRadius);
+	    	// TODO: pass a coordinate frame that is returned by space curve function (instead of initial)
+            addCylindricSection(mesh, circlePoints, initial, sectionRadius);
 	    }
 
         float newLength1 = 3*length / 5.0f;
@@ -164,22 +167,24 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
     }
 }
 
+
 void App::addLeaves(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const{
     int index = leafMesh.numVertices();
-    float l = length;
-    Vector3 vec1 = Vector3(l / 2.0f, 0.0f, 0.0f);
+    float leafSize = length*4.0f;
+    Vector3 vec1 = Vector3(leafSize / 2.0f, 0.0f, 0.0f);
     vec1 = initial.pointToWorldSpace(vec1);
-    Vector3 vec2 = Vector3(-l / 2.0f, 0.0f, 0.0f);
+    Vector3 vec2 = Vector3(-leafSize / 2.0f, 0.0f, 0.0f);
     vec2 = initial.pointToWorldSpace(vec2);
-    Vector3 vec3 = Vector3(0.0f, l, 0.0f);
+    Vector3 vec3 = Vector3(0.0f, leafSize, 0.0f);
     vec3 = initial.pointToWorldSpace(vec3);
-    leafMesh.addVertex(vec1.x, vec1.y, vec1.z);
-    leafMesh.addVertex(vec2.x, vec2.y, vec2.z);
-    leafMesh.addVertex(vec3.x, vec3.y, vec3.z);
+    leafMesh.addVertex(vec1);
+    leafMesh.addVertex(vec2);
+    leafMesh.addVertex(vec3);
     leafMesh.addFace(index, index+1, index+2);
     leafMesh.addFace(index+2, index+1, index);
 
 }
+
 
 void App::addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const {
 	int index = mesh.numVertices();
@@ -189,8 +194,7 @@ void App::addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame&
         Vector3 vec = Vector3(cos(angle) * radius, 0.0f, sin(angle) * radius);
         vec = origin.pointToWorldSpace(vec);
 
-        //TODO:: add mesh method to take vec directly
-		mesh.addVertex(vec.x, vec.y, vec.z);
+		mesh.addVertex(vec);
 	}
 	int offset = index - pts;
 	for(int i = 0; i < pts; ++i) {
