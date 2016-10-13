@@ -7,6 +7,7 @@
 #pragma once
 #include <G3D/G3DAll.h>
 #include "Mesh.h"
+#include "BranchDimensions.h"
 //#include "Tree.h"
 
 /** \brief Application framework. */
@@ -16,10 +17,12 @@ protected:
     void makeGUI();
 
     void makeTree();
-    void makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int)> branchRadius, int recursionDepth, int circlePoints = 10, int branchSections = 10) const;
+    void makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int)> branchRadius, 
+        std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) const;
 	void addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const;
     Vector3 spineCurve(float t);
     float branchRadius(float t, int recursionDepth);
+    void App::spikyTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     float App::envelopePerimeter(float y);
 
     //Tree makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode);
