@@ -7,6 +7,7 @@
 #pragma once
 #include <G3D/G3DAll.h>
 #include "Mesh.h"
+#include "Tree.h"
 
 /** \brief Application framework. */
 class App : public GApp {
@@ -19,6 +20,11 @@ protected:
 	void addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const;
     Vector3 spineCurve(float t);
     float branchRadius(float t, int recursionDepth);
+    float App::envelopePerimeter(float y);
+
+    Tree makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode);
+    Array<Point3> generateAnchorPoints(int count, float height, float radius, std::function<float(float)> radiusCurve);
+    void skeletonToMesh(float initRadius, float radiusGrowth, String filename, Tree Skeleton);
     void addLeaves(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const;
 
 public:
