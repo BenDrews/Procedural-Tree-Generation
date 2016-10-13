@@ -1,7 +1,9 @@
 /** \file App.cpp */
 #include "App.h"
 #include "Mesh.h"
+#include "Tree.h"
 #include <cmath>
+#include <map>
 
 // Tells C++ to invoke command-line main() function even on OS X and Win32.
 G3D_START_AT_MAIN();
@@ -69,7 +71,10 @@ void App::onInit() {
     // developerWindow->videoRecordDialog->setScreenShotFormat("PNG");
     // developerWindow->videoRecordDialog->setCaptureGui(false);
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
-    makeTree();
+   // makeTree();
+
+    makeTreeSkeleton(5, [this](float y) {return App::envelopePerimeter(y);}, 10.0f, 10.0f, 2.0f, 0.5f, Point3(0,0,0));
+
     loadScene(
         //"G3D Sponza"
         "Tree Testing" // Load something simple
@@ -211,4 +216,97 @@ Vector3 App::spineCurve(float t) {
 
 float App::branchRadius(float t, int recursionDepth) {
     return ((float)recursionDepth/100.0f);
+}
+
+float App::envelopePerimeter(float y) {
+    if(y < 0.5f) {
+        return 0.0f;
+    } else {
+        return 2.0f - (2.0f * y);
+    }
+}
+
+Tree App::makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode) {
+
+    Tree result = Tree(initTreeNode);
+
+    Tree testNode = Tree(initTreeNode);
+
+    Array<Point3> anchorPointsList = generateAnchorPoints(anchorPoints, height, radius, envelopePerimeter);
+    
+    while(anchorPointsList.size() > 0) {
+        Array<Tree*> selectedNodes = Array<Tree*>();
+        
+        //For each anchor, select the closest tree node.
+        for(int i = 0; i < anchorPointsList.size(); ++i) {
+            Point3 currentAnchor = anchorPointsList[i];
+            Array<Tree*> stack = Array<Tree*>(&result);
+            Tree* closestNode = &result;
+
+            while(stack.size() > 0) {
+                Tree* challenger = stack.pop();
+                if((challenger->getContents() - currentAnchor).magnitude() < (closestNode->getContents() - currentAnchor).magnitude()) {
+                    closestNode = challenger;
+                }
+                Array<Tree*>* tempArray = challenger->getChildren();
+                stack.append(*challenger->getChildren());
+            }
+            selectedNodes.push(closestNode);
+        }
+
+        //Assign the directions for new tree nodes.
+        std::map<Tree*, Vector3> nodeDirections;
+        for(int i = 0; i < anchorPointsList.size(); ++i) {
+            Tree* tempNode = selectedNodes[i];
+            if(nodeDirections.find(tempNode) == nodeDirections.end()) {
+                nodeDirections[tempNode] = (anchorPointsList[i] - tempNode->getContents()).direction();
+            } else {
+                nodeDirections[tempNode] = (nodeDirections[tempNode] + (anchorPointsList[i] - tempNode->getContents()).direction()).direction();
+            }
+        }
+
+        //Iterate over the selected nodes and spawn new tree nodes.
+        for(auto it = nodeDirections.begin(); it != nodeDirections.end(); ++it) {
+            Tree* parent = it->first;
+            Point3 pos1 = parent->getContents();
+            Point3 pos2 = nodeDistance * nodeDirections[parent];
+            Tree child = Tree(pos1 + pos2, parent);
+            Array<Tree*>* children = parent->getChildren();
+            children->push(&child);
+        }
+
+        //Kill anchors too close to the tree.
+        for(int i = 0; i < anchorPointsList.size(); ++i) {
+            Point3 currentAnchor = anchorPointsList[i];
+
+            Array<Tree*> stack = Array<Tree*>(&result);
+
+            while(stack.size() > 0) {
+                Tree* challenger = stack.pop();
+                if((challenger->getContents() - currentAnchor).magnitude() < killDistance * nodeDistance) {
+                    anchorPointsList.remove(i);
+                    break;
+                }
+                stack.append(*challenger->getChildren());
+            }
+        }
+    }
+    return result;
+}
+
+Array<Point3> App::generateAnchorPoints(int count, float height, float radius, std::function<float(float)> radiusCurve) {
+    Random& rng = Random::threadCommon();
+    Array<Point3> result = Array<Point3>();
+    for(int i = 0; i < count; ++i) {
+        Point3 newPoint;
+        do {
+            newPoint = Point3(rng.uniform(), rng.uniform(), rng.uniform());
+        } while(newPoint.xz().length() >= radiusCurve(newPoint.y));
+        result.push(Point3(newPoint.x * radius, newPoint.y * height, newPoint.z * radius));
+    }
+    return result;
+}
+
+void App::skeletonToMesh(float initRadius, float radiusGrowth, String filename, Tree skeleton) {
+    
 }
