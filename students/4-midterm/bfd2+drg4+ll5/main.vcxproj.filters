@@ -7,6 +7,9 @@
     <ClCompile Include="source\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\BranchDimensions.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\App.h">
@@ -18,6 +21,9 @@
     <ClInclude Include="source\Tree.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\BranchDimensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources.rc" />
@@ -25,9 +31,6 @@
   <ItemGroup>
     <None Include="mainpage.dox" />
     <None Include="Doxyfile" />
-    <None Include="data-files\test.Scene.Any">
-      <Filter>Scene Files</Filter>
-    </None>
     <None Include="journal\journal.md.html" />
     <None Include="doc-files\report.md.html" />
     <None Include="data-files\scene\tree.Scene.Any">

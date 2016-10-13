@@ -92,11 +92,21 @@ void App::makeGUI() {
     debugWindow->setVisible(true);
     developerWindow->videoRecordDialog->setEnabled(true);
 
-	//Code to add cylinder generation GUI.
-    GuiPane* treePane = debugPane->addPane("Treez");
-
-    treePane->setNewChildSize(240);
-    treePane->addButton("Generate tree"); // TODO:: ADD BUTTON FUNCTIONALITY
+	// Tree generation GUI
+    GuiPane* treePane = debugPane->addPane("Tree");
+    treePane->setNewChildSize(500, -1, 300);
+	treePane->addNumberBox("Recursion depth:", &m_maxRecursionDepth, "", GuiTheme::LINEAR_SLIDER, 2, 10);
+	treePane->addNumberBox("Initial height:", &m_initialHeight, "", GuiTheme::LINEAR_SLIDER, 0.5f, 3.0f);
+	treePane->addNumberBox("Circle points:", &m_circlePts, "", GuiTheme::LINEAR_SLIDER, 3, 10);
+	treePane->addNumberBox("Branch sections:", &m_branchSections, "", GuiTheme::LINEAR_SLIDER, 1, 10);
+    treePane->addDropDownList("Phenotype", m_phenotypes, &m_phenotypesIndex);
+    treePane->addButton("Generate tree", [this](){
+		makeTree();
+		drawMessage("Generating tree...");
+		ArticulatedModel::clearCache();
+		GApp::loadScene("Tree Testing");
+	});
+	treePane->pack();
 
     debugWindow->pack();
     debugWindow->setRect(Rect2D::xywh(0, 0, (float)window()->width(), debugWindow->rect().height()));
@@ -106,14 +116,19 @@ void App::makeGUI() {
 void App::makeTree() {
     Mesh tree = Mesh("tree");
     Mesh leafMesh = Mesh("leaf");
-    float length = 1.0f;
-    int maxRecursionDepth = 7;
-    int circlePoints = 3;
-    int branchSections = 1;
 
-    makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);},
-        [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth) {return App::spikyTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
-        maxRecursionDepth, maxRecursionDepth, circlePoints, branchSections);
+	if (m_phenotypesIndex == 0) {
+		makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), m_initialHeight, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);},
+			[this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
+			{return App::normalTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
+			m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
+	}
+	if (m_phenotypesIndex == 1) {
+		makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), m_initialHeight, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);},
+			[this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
+			{return App::spikyTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
+			m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
+	}
     
     tree.toOBJ();
     leafMesh.toOBJ();
@@ -161,11 +176,10 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
         else if (currentRecursionDepth == 1){
             CoordinateFrame leaf = initial;
             leaf.translation = branchEnd;
-            addLeaves(leafMesh, length, leaf);
+            float leafSize = 0.15f;
+            addLeaves(leafMesh, leafSize, leaf);
         }
         else {
-            Array<BranchDimensions> nextBranches;
-            phenotype(nextBranches, length, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);
             for (int i = 1; i < nextBranches.length(); ++i) {
                 BranchDimensions nextBranch = nextBranches[i];
                 CoordinateFrame branch = nextBranch.frame;
@@ -178,42 +192,9 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
 }
 
 
-void App::spikyTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
-    if (currentRecursionDepth == maxRecursionDepth) {
-        BranchDimensions& dims = nextBranches.next();
-        dims.frame.translation = branchEnd;
-        dims.frame.rotation = initialFrame.rotation;
-        dims.length = 4.0f * initialLength / 5.0f;
-    }
-    else {
-        float newBranchLength = 3.0f * initialLength / 5.0f;
-
-        CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
-        branch1.translation = branchEnd;
-
-        CoordinateFrame branch2 = initialFrame;
-        branch2.rotation = (Matrix4::pitchDegrees(25.0f) * Matrix4::yawDegrees(90.0f)).upper3x3();
-        branch2.translation = branchEnd;
-        
-        CoordinateFrame branch3 = initialFrame;
-        branch3.rotation = (Matrix4::pitchDegrees(-25.0f) * Matrix4::yawDegrees(90.0f)).upper3x3();
-        branch3.translation = branchEnd;
-        
-        CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
-        branch4.translation = branchEnd;
-
-        nextBranches.push(BranchDimensions(branch1, newBranchLength));
-        nextBranches.push(BranchDimensions(branch2, newBranchLength));
-        nextBranches.push(BranchDimensions(branch3, newBranchLength));
-        nextBranches.push(BranchDimensions(branch4, newBranchLength));
-    }
-    debugAssert(nextBranches.size() > 0);
-}
-
-
-void App::addLeaves(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const{
+void App::addLeaves(Mesh& leafMesh, float& leafSize, const CoordinateFrame& initial) const{
     int index = leafMesh.numVertices();
-    float leafSize = length*1.5f;
+    //float leafSize = length*1.5f;
     Vector3 vec1 = Vector3(leafSize / 2.0f, 0.0f, 0.0f);
     vec1 = initial.pointToWorldSpace(vec1);
     Vector3 vec2 = Vector3(-leafSize / 2.0f, 0.0f, 0.0f);
@@ -246,13 +227,81 @@ void App::addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame&
 }
 
 
+// Callback functions for the curve of the tree
 Vector3 App::spineCurve(float t) {
     return Vector3(0.0f, t, 0.0f);
 }
 
 
+// Callback functions for the radii of the branches
 float App::branchRadius(float t, int recursionDepth) {
     return (float(recursionDepth)/100.0f);
+}
+
+
+// Callback functions for the phenotype of the tree
+void App::spikyTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
+    if (currentRecursionDepth == maxRecursionDepth) {
+        BranchDimensions& dims = nextBranches.next();
+        dims.frame.translation = branchEnd;
+        dims.frame.rotation = initialFrame.rotation;
+        dims.length = 4.0f * initialLength / 5.0f;
+    }
+    else {
+        float newBranchLength = 3.0f * initialLength / 5.0f;
+
+        CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
+        branch1.translation = branchEnd;
+
+        CoordinateFrame branch2 = initialFrame;
+        branch2.rotation = (Matrix4::pitchDegrees(25.0f) * Matrix4::yawDegrees(90.0f)).upper3x3();
+        branch2.translation = branchEnd;
+        
+        CoordinateFrame branch3 = initialFrame;
+        branch3.rotation = (Matrix4::pitchDegrees(-25.0f) * Matrix4::yawDegrees(90.0f)).upper3x3();
+        branch3.translation = branchEnd;
+        
+        CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
+        branch4.translation = branchEnd;
+
+        nextBranches.push(BranchDimensions(branch1, newBranchLength));
+        nextBranches.push(BranchDimensions(branch2, newBranchLength));
+        nextBranches.push(BranchDimensions(branch3, newBranchLength));
+        nextBranches.push(BranchDimensions(branch4, newBranchLength));
+    }
+    debugAssert(nextBranches.size() > 0);
+}
+
+void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
+    if (currentRecursionDepth == maxRecursionDepth) {
+        BranchDimensions& dims = nextBranches.next();
+        dims.frame.translation = branchEnd;
+        dims.frame.rotation = initialFrame.rotation;
+        dims.length = 4.0f * initialLength / 5.0f;
+    }
+    else {
+        float newBranchLength = 3.0f * initialLength / 5.0f;
+
+        //CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
+        //branch1.translation = branchEnd;
+
+        CoordinateFrame branch2 = initialFrame;
+        branch2.rotation = (Matrix4::yawDegrees(90.0f) * Matrix4::pitchDegrees(25.0f)).upper3x3();
+        branch2.translation = branchEnd;
+        
+        CoordinateFrame branch3 = initialFrame;
+        branch3.rotation = (Matrix4::yawDegrees(90.0f) * Matrix4::pitchDegrees(-25.0f)).upper3x3();
+        branch3.translation = branchEnd;
+        
+        CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
+        branch4.translation = branchEnd;
+
+        //nextBranches.push(BranchDimensions(branch1, newBranchLength));
+        nextBranches.push(BranchDimensions(branch2, newBranchLength));
+        nextBranches.push(BranchDimensions(branch3, newBranchLength));
+        nextBranches.push(BranchDimensions(branch4, newBranchLength));
+    }
+    debugAssert(nextBranches.size() > 0);
 }
 
 
