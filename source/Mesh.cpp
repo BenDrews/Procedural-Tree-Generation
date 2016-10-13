@@ -14,6 +14,10 @@ void Mesh::addVertex(float x, float y, float z) {
 	vertices.push_back(Point3(x, y, z));
 }
 
+void Mesh::addVertex(Point3 vertex) {
+	vertices.push_back(vertex);
+}
+
 void Mesh::addFace(int f1, int f2, int f3) {
 	Poly face = Poly::SmallArray();
 	face.push(f1);

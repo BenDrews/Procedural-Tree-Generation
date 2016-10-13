@@ -14,6 +14,7 @@ class Mesh {
 		std::vector<SmallArray<int, 3>> faces;
 	public:
 		void addVertex(float x, float y, float z);
+        void addVertex(Point3 vertex);
 		void addFace(int f1, int f2, int f3);
 		Mesh(const String& fn);
 		void toOFF();
