@@ -1,9 +1,11 @@
 /** \file App.cpp */
 #include "App.h"
 #include "Mesh.h"
+#include "BranchDimensions.h"
 //#include "Tree.h"
 #include <cmath>
 #include <map>
+#include <tuple>
 
 // Tells C++ to invoke command-line main() function even on OS X and Win32.
 G3D_START_AT_MAIN();
@@ -80,8 +82,6 @@ void App::onInit() {
         "Tree Testing" // Load something simple
         //developerWindow->sceneEditorWindow->selectedSceneName()  // Load the first scene encountered 
         );
-
-
 }
 
 
@@ -107,16 +107,24 @@ void App::makeTree() {
     Mesh tree = Mesh("tree");
     Mesh leafMesh = Mesh("leaf");
     float length = 1.0f;
-    makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);}, 7, 3, 1);
+    int maxRecursionDepth = 7;
+    int circlePoints = 3;
+    int branchSections = 1;
+
+    makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), length, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);},
+        [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth) {return App::spikyTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
+        maxRecursionDepth, maxRecursionDepth, circlePoints, branchSections);
+    
     tree.toOBJ();
     leafMesh.toOBJ();
 }
 
 
-void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int)> branchRadius, int recursionDepth, int circlePoints, int branchSections) const {
-    if (recursionDepth != 0) {
+void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int)> branchRadius,
+    std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) const {
+    if (currentRecursionDepth != 0) {
         int index = mesh.numVertices();
-	    float sectionHeight;
+	    //float sectionHeight;
 	    float sectionRadius;
         Point3 branchEnd = initial.pointToWorldSpace(Point3(0,length,0));
         Point3 branchMid = initial.pointToWorldSpace(Point3(0,length*(6.0f/10.0f),0));
@@ -124,7 +132,7 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
         // Add vertices of intial circle at the top of the branch we are currently making to mesh
 	    for(int i = 0; i < circlePoints; ++i) {
 	    	float angle = (i * 2.0f * pif()) / circlePoints;
-            sectionRadius = branchRadius(length, recursionDepth);
+            sectionRadius = branchRadius(length, currentRecursionDepth);
             Vector3 vec = Vector3(cos(angle) * sectionRadius, length, sin(angle) * sectionRadius);
             vec = initial.pointToWorldSpace(vec);
 	    	mesh.addVertex(vec.x, vec.y, vec.z);  
@@ -132,50 +140,80 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
 	    
         // Add vertices of circles underneath the initial circle to mesh
 	    for(int i = 0; i < branchSections; ++i) {
-	    	sectionRadius = branchRadius(length - (i * length / float(branchSections)), recursionDepth);
-	    	// TODO: pass a coordinate frame that is returned by space curve function (instead of initial)
+	    	sectionRadius = branchRadius(length - (i * length / float(branchSections)), currentRecursionDepth);
+	    	// TODO:: pass a coordinate frame that is returned by space curve function (instead of initial)
             addCylindricSection(mesh, circlePoints, initial, sectionRadius);
 	    }
 
-        float newLength1 = 3*length / 5.0f;
-        float newLength2 = 4*length / 5.0f;
+        // callback function to decide how to recurse, populates an array of BranchDimensions which contain coordinate frames and lengths for the next branches
+        Array<BranchDimensions> nextBranches;
+        phenotype(nextBranches, length, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);
+        debugAssert(nextBranches.size() > 0);
 
+        if (currentRecursionDepth == maxRecursionDepth) {
+            debugAssert(nextBranches.size() > 0);
+            BranchDimensions trunk = nextBranches[0];
+            CoordinateFrame trunkFrame = trunk.frame;
+            float trunkLength = trunk.length;
 
-        CoordinateFrame branch1 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
-        branch1.translation = branchEnd;
-        CoordinateFrame branch2 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
-        branch2 = branch2 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 25.0f, 0.0f);        
-        branch2.translation = branchEnd;
-        CoordinateFrame branch3 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
-        branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -25.0f, 0.0f);
-        branch3.translation = branchEnd;
-        CoordinateFrame branch4 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
-        //branch4 = branch4 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -60.0f, 0.0f);
-        branch4.translation = branchEnd;    
-        CoordinateFrame branch5 = initial * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 0.0f, 0.0f);
-        //branch3 = branch5 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -25.0f, 0.0f);
-        branch5.translation = branchEnd;
-
-        if(recursionDepth < 10){
-            makeBranch(mesh, leafMesh, branch1, newLength1, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-            makeBranch(mesh, leafMesh, branch2, newLength1, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-            makeBranch(mesh, leafMesh, branch3, newLength1, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-            makeBranch(mesh, leafMesh, branch4, newLength1, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
+            makeBranch(mesh, leafMesh, trunkFrame, trunkLength, spineCurve, branchRadius, phenotype, maxRecursionDepth, currentRecursionDepth - 1, circlePoints, branchSections);
         }
-        makeBranch(mesh, leafMesh, branch5, newLength2, spineCurve, branchRadius, recursionDepth - 1, circlePoints, branchSections);
-
-        if(recursionDepth == 1){
+        else if (currentRecursionDepth == 1){
             CoordinateFrame leaf = initial;
             leaf.translation = branchEnd;
             addLeaves(leafMesh, length, leaf);
+        }
+        else {
+            Array<BranchDimensions> nextBranches;
+            phenotype(nextBranches, length, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);
+            for (int i = 1; i < nextBranches.length(); ++i) {
+                BranchDimensions nextBranch = nextBranches[i];
+                CoordinateFrame branch = nextBranch.frame;
+                float newLength = nextBranch.length;
+                
+                makeBranch(mesh, leafMesh, branch, newLength, spineCurve, branchRadius, phenotype, maxRecursionDepth, currentRecursionDepth - 1, circlePoints, branchSections);   
+            }
         }
     }
 }
 
 
+void App::spikyTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
+    if (currentRecursionDepth == maxRecursionDepth) {
+        BranchDimensions& dims = nextBranches.next();
+        dims.frame.translation = branchEnd;
+        dims.frame.rotation = initialFrame.rotation;
+        dims.length = 4.0f * initialLength / 5.0f;
+    }
+    else {
+        float newBranchLength = 3.0f * initialLength / 5.0f;
+
+        CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
+        branch1.translation = branchEnd;
+
+        CoordinateFrame branch2 = initialFrame;
+        branch2.rotation = (Matrix4::pitchDegrees(25.0f) * Matrix4::yawDegrees(90.0f)).upper3x3();
+        branch2.translation = branchEnd;
+        
+        CoordinateFrame branch3 = initialFrame;
+        branch3.rotation = (Matrix4::pitchDegrees(-25.0f) * Matrix4::yawDegrees(90.0f)).upper3x3();
+        branch3.translation = branchEnd;
+        
+        CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
+        branch4.translation = branchEnd;
+
+        nextBranches.push(BranchDimensions(branch1, newBranchLength));
+        nextBranches.push(BranchDimensions(branch2, newBranchLength));
+        nextBranches.push(BranchDimensions(branch3, newBranchLength));
+        nextBranches.push(BranchDimensions(branch4, newBranchLength));
+    }
+    debugAssert(nextBranches.size() > 0);
+}
+
+
 void App::addLeaves(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const{
     int index = leafMesh.numVertices();
-    float leafSize = length*4.0f;
+    float leafSize = length*1.5f;
     Vector3 vec1 = Vector3(leafSize / 2.0f, 0.0f, 0.0f);
     vec1 = initial.pointToWorldSpace(vec1);
     Vector3 vec2 = Vector3(-leafSize / 2.0f, 0.0f, 0.0f);
@@ -187,7 +225,6 @@ void App::addLeaves(Mesh& leafMesh, float& length, const CoordinateFrame& initia
     leafMesh.addVertex(vec3);
     leafMesh.addFace(index, index+1, index+2);
     leafMesh.addFace(index+2, index+1, index);
-
 }
 
 
@@ -215,8 +252,9 @@ Vector3 App::spineCurve(float t) {
 
 
 float App::branchRadius(float t, int recursionDepth) {
-    return ((float)recursionDepth/100.0f);
+    return (float(recursionDepth)/100.0f);
 }
+
 
 float App::envelopePerimeter(float y) {
     if(y < 0.5f) {

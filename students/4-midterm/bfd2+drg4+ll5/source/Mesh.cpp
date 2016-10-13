@@ -33,10 +33,6 @@ void Mesh::toOFF() {
 	TextOutput tOut = TextOutput(offFilename);
 	tOut.printf("OFF\n%d %d 0\n", vertexCount, faceCount);
 
-
-    debugPrintf( "Faces: %d, Vertices: %d \n", faceCount, vertexCount);
-
-
 	for(int i = 0; i < vertexCount; ++i) {
 		Point3 vertex = vertices.at(i);
 		tOut.printf("%f %f %f\n", vertex.x, vertex.y, vertex.z);
