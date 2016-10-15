@@ -6,6 +6,27 @@
             ll5@williams.edu
 
 
+
+2016-10-14: Add realistic branch radii (Diego)
+=====================================================
+Ben showed me a paper that said that the radius of a branch is the square root of of all its children's radii squared summed together. I added this and made each branch linearly interpolate between its base radius and its child radii. This looked pretty good
+
+![](realisticTreeRadii.png)
+
+But unfortunately, it didn't result in good looking trees once the recursion level was raised.
+
+![](bigRecursionRadii.png)
+
+I added code to make the interpolation be quadratic to result in a smoother transition, but it didn't seem to work. After adding in more branch sections, no aparent change was shown. After checking the wireframe, there only seemed to be one branch section.
+
+![](oneBranchSection.png)
+
+After looking around, I noticed where the extra branch sections were going, onto the backfaces.
+
+![](backfaceBranchSections.png)
+
+This is a bug for another day. I'll add it to the list.
+
 2016-10-13: Adding some GUI (Lylia)
 =====================================================
 I added GUI to the App class that control several parameters for tree creation, including the max recursion depth, initial height of the tree, number of circle points in the generated cylinders, number of branch sections, and a drop-down list to choose different phenotype callback functions.

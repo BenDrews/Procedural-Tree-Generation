@@ -6,6 +6,7 @@
 #include <cmath>
 #include <map>
 #include <tuple>
+#include <stdlib.h> 
 
 // Tells C++ to invoke command-line main() function even on OS X and Win32.
 G3D_START_AT_MAIN();
@@ -98,7 +99,7 @@ void App::makeGUI() {
 	treePane->addNumberBox("Recursion depth:", &m_maxRecursionDepth, "", GuiTheme::LINEAR_SLIDER, 2, 10);
 	treePane->addNumberBox("Initial height:", &m_initialHeight, "", GuiTheme::LINEAR_SLIDER, 0.5f, 3.0f);
 	treePane->addNumberBox("Circle points:", &m_circlePts, "", GuiTheme::LINEAR_SLIDER, 3, 10);
-	treePane->addNumberBox("Branch sections:", &m_branchSections, "", GuiTheme::LINEAR_SLIDER, 1, 10);
+	treePane->addNumberBox("Branch sections:", &m_branchSections, "", GuiTheme::LINEAR_SLIDER, 1, 100);
     treePane->addDropDownList("Phenotype", m_phenotypes, &m_phenotypesIndex);
     treePane->addButton("Generate tree", [this](){
 		makeTree();
@@ -118,15 +119,15 @@ void App::makeTree() {
     Mesh leafMesh = Mesh("leaf");
 
 	if (m_phenotypesIndex == 0) {
-		makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), m_initialHeight, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);},
+		makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), m_initialHeight, [this](float t) {return App::spineCurve(t);}, [this](float t, int branchFactor, int depth) {return App::branchRadius(t, branchFactor, depth);},
 			[this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::normalTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
 			m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
 	}
 	if (m_phenotypesIndex == 1) {
-		makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), m_initialHeight, [this](float t) {return App::spineCurve(t);}, [this](float t, int depth) {return App::branchRadius(t, depth);},
+		makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), m_initialHeight, [this](float t) {return App::spineCurve(t);}, [this](float t, int branchFactor, int depth) {return App::branchRadius(t, branchFactor, depth);},
 			[this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
-			{return App::spikyTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
+			{return App::randomTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
 			m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
 	}
     
@@ -134,20 +135,27 @@ void App::makeTree() {
     leafMesh.toOBJ();
 }
 
-
-void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int)> branchRadius,
+void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int, int)> branchRadius,
     std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) const {
     if (currentRecursionDepth != 0) {
         int index = mesh.numVertices();
 	    //float sectionHeight;
 	    float sectionRadius;
+        float distanceAlongBranch = 1.0f; //Ranges from 0.0f to 1.0f
         Point3 branchEnd = initial.pointToWorldSpace(Point3(0,length,0));
         Point3 branchMid = initial.pointToWorldSpace(Point3(0,length*(6.0f/10.0f),0));
-	    
+
+
+        // callback function to decide how to recurse, populates an array of BranchDimensions which contain coordinate frames and lengths for the next branches
+        Array<BranchDimensions> nextBranches;
+        phenotype(nextBranches, length, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);
+        debugAssert(nextBranches.size() > 0);
+
+
         // Add vertices of intial circle at the top of the branch we are currently making to mesh
 	    for(int i = 0; i < circlePoints; ++i) {
 	    	float angle = (i * 2.0f * pif()) / circlePoints;
-            sectionRadius = branchRadius(length, currentRecursionDepth);
+            sectionRadius = branchRadius(distanceAlongBranch, nextBranches.size(), currentRecursionDepth);
             Vector3 vec = Vector3(cos(angle) * sectionRadius, length, sin(angle) * sectionRadius);
             vec = initial.pointToWorldSpace(vec);
 	    	mesh.addVertex(vec.x, vec.y, vec.z);  
@@ -155,32 +163,22 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
 	    
         // Add vertices of circles underneath the initial circle to mesh
 	    for(int i = 0; i < branchSections; ++i) {
-	    	sectionRadius = branchRadius(length - (i * length / float(branchSections)), currentRecursionDepth);
+            distanceAlongBranch =  (float)(i * length / float(branchSections)) / length;
+	    	sectionRadius = branchRadius(distanceAlongBranch, nextBranches.size(), currentRecursionDepth);
 	    	// TODO:: pass a coordinate frame that is returned by space curve function (instead of initial)
-            addCylindricSection(mesh, circlePoints, initial, sectionRadius);
+            CoordinateFrame section = initial;
+            section.translation = initial.pointToWorldSpace(length * spineCurve(distanceAlongBranch));
+             addCylindricSection(mesh, circlePoints, section, sectionRadius);
 	    }
 
-        // callback function to decide how to recurse, populates an array of BranchDimensions which contain coordinate frames and lengths for the next branches
-        Array<BranchDimensions> nextBranches;
-        phenotype(nextBranches, length, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);
-        debugAssert(nextBranches.size() > 0);
-
-        if (currentRecursionDepth == maxRecursionDepth) {
-            debugAssert(nextBranches.size() > 0);
-            BranchDimensions trunk = nextBranches[0];
-            CoordinateFrame trunkFrame = trunk.frame;
-            float trunkLength = trunk.length;
-
-            makeBranch(mesh, leafMesh, trunkFrame, trunkLength, spineCurve, branchRadius, phenotype, maxRecursionDepth, currentRecursionDepth - 1, circlePoints, branchSections);
-        }
-        else if (currentRecursionDepth == 1){
+        if (currentRecursionDepth == 1){
             CoordinateFrame leaf = initial;
             leaf.translation = branchEnd;
             float leafSize = 0.15f;
             addLeaves(leafMesh, leafSize, leaf);
         }
         else {
-            for (int i = 1; i < nextBranches.length(); ++i) {
+            for (int i = 0; i < nextBranches.length(); ++i) {
                 BranchDimensions nextBranch = nextBranches[i];
                 CoordinateFrame branch = nextBranch.frame;
                 float newLength = nextBranch.length;
@@ -234,73 +232,97 @@ Vector3 App::spineCurve(float t) {
 
 
 // Callback functions for the radii of the branches
-float App::branchRadius(float t, int recursionDepth) {
-    return (float(recursionDepth)/100.0f);
+float App::branchRadius(float t, int branchingNumber, int recursionDepth) {
+    if (recursionDepth == 0){
+        return 0.01f;
+    }
+    float end = branchRadius(0.0f, branchingNumber, recursionDepth - 1);
+    float base = branchingNumber * (end*end);
+    base = sqrt(base);
+
+
+    debugAssert(t >= 0.0f && t <= 1.0f);
+    //a, b, and c from the quadratic eq. ax^2 + bx + c = y
+    float a = (base - end);
+    float b = 2.0f*(end - base);
+    float c = base;
+
+    return (t*t*a) + (b*t) + c;
 }
 
 
 // Callback functions for the phenotype of the tree
-void App::spikyTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
-    if (currentRecursionDepth == maxRecursionDepth) {
-        BranchDimensions& dims = nextBranches.next();
-        dims.frame.translation = branchEnd;
-        dims.frame.rotation = initialFrame.rotation;
-        dims.length = 4.0f * initialLength / 5.0f;
-    }
-    else {
-        float newBranchLength = 3.0f * initialLength / 5.0f;
+void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
 
-        CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
-        branch1.translation = branchEnd;
+    float newBranchLength = 3.0f * initialLength / 5.0f;
+    float rPitch = rand() % 20 + 25; //This will give a random pitch within the range 25 - 45
+    float rYaw;
+    CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch, 0.0f);
+    branch1.translation = branchEnd;
+    
+    rPitch = rand() % 20 + 25; 
+    rYaw = rand() % 20 + 80; //This will give a random yaw fom 80 to 100
+    CoordinateFrame branch2 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw, 0.0f, 0.0f);
+    branch2 = branch2 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch, 0.0f);
+    branch2.translation = branchEnd;
+    
+    rPitch = rand() % 20 + 25; 
+    rYaw = rand() % 20 + 80;
+    CoordinateFrame branch3 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw, 0.0f, 0.0f);
+    branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -rPitch, 0.0f);
+    branch3.translation = branchEnd;
+    
+    rPitch = rand() % 20 + 25; 
+    CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -rPitch, 0.0f);
+    branch4.translation = branchEnd;
 
-        CoordinateFrame branch2 = initialFrame;
-        branch2.rotation = (Matrix4::pitchDegrees(25.0f) * Matrix4::yawDegrees(90.0f)).upper3x3();
-        branch2.translation = branchEnd;
-        
-        CoordinateFrame branch3 = initialFrame;
-        branch3.rotation = (Matrix4::pitchDegrees(-25.0f) * Matrix4::yawDegrees(90.0f)).upper3x3();
-        branch3.translation = branchEnd;
-        
-        CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
-        branch4.translation = branchEnd;
+    
+    //These random values will determine how many child branches will be added
+    bool makeBranch1 = (rand() % 100) > 30;
+    bool makeBranch2 = (rand() % 100) > 30;
+    bool makeBranch3 = (rand() % 100) > 30;
+    bool makeBranch4 = (rand() % 100) > 30;
 
+    if(makeBranch1){
         nextBranches.push(BranchDimensions(branch1, newBranchLength));
+    }
+    if(makeBranch2){
         nextBranches.push(BranchDimensions(branch2, newBranchLength));
+    }
+    if(makeBranch3){
         nextBranches.push(BranchDimensions(branch3, newBranchLength));
+    }
+    if(makeBranch4){
         nextBranches.push(BranchDimensions(branch4, newBranchLength));
     }
     debugAssert(nextBranches.size() > 0);
 }
 
 void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
-    if (currentRecursionDepth == maxRecursionDepth) {
-        BranchDimensions& dims = nextBranches.next();
-        dims.frame.translation = branchEnd;
-        dims.frame.rotation = initialFrame.rotation;
-        dims.length = 4.0f * initialLength / 5.0f;
-    }
-    else {
-        float newBranchLength = 3.0f * initialLength / 5.0f;
 
-        //CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
-        //branch1.translation = branchEnd;
+    float newBranchLength = 3.0f * initialLength / 5.0f;
 
-        CoordinateFrame branch2 = initialFrame;
-        branch2.rotation = (Matrix4::yawDegrees(90.0f) * Matrix4::pitchDegrees(25.0f)).upper3x3();
-        branch2.translation = branchEnd;
-        
-        CoordinateFrame branch3 = initialFrame;
-        branch3.rotation = (Matrix4::yawDegrees(90.0f) * Matrix4::pitchDegrees(-25.0f)).upper3x3();
-        branch3.translation = branchEnd;
-        
-        CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
-        branch4.translation = branchEnd;
+    CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
+    branch1.translation = branchEnd;
 
-        //nextBranches.push(BranchDimensions(branch1, newBranchLength));
-        nextBranches.push(BranchDimensions(branch2, newBranchLength));
-        nextBranches.push(BranchDimensions(branch3, newBranchLength));
-        nextBranches.push(BranchDimensions(branch4, newBranchLength));
-    }
+    CoordinateFrame branch2 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
+    branch2.translation = branchEnd;
+
+    CoordinateFrame branch3 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
+    branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
+    branch3.translation = branchEnd;
+    
+    CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 90.0f, 0.0f, 0.0f);
+    branch4 = branch4 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
+    branch4.translation = branchEnd;
+    
+    
+
+    nextBranches.push(BranchDimensions(branch1, newBranchLength));
+    nextBranches.push(BranchDimensions(branch2, newBranchLength));
+    nextBranches.push(BranchDimensions(branch3, newBranchLength));
+    nextBranches.push(BranchDimensions(branch4, newBranchLength));
+ 
     debugAssert(nextBranches.size() > 0);
 }
 

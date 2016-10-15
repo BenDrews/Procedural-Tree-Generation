@@ -17,23 +17,23 @@ protected:
 	float m_initialHeight = 1.0f;
 	int m_circlePts = 3;
 	int m_branchSections = 1;
-	const Array<String> m_phenotypes = Array<String>("Normal", "Spiky");
+	const Array<String> m_phenotypes = Array<String>("Normal", "Random");
 	int m_phenotypesIndex = 0;
 
     /** Called from onInit */
     void makeGUI();
 
     void makeTree();
-    void makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int)> branchRadius, 
+    void makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int, int)> branchRadius, 
         std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) const;
     void addLeaves(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const;
     void addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const;
     
     Vector3 spineCurve(float t);
     
-    float branchRadius(float t, int recursionDepth);
+    float branchRadius(float t, int childBranches, int recursionDepth);
     
-    void App::spikyTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
+    void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     
     float App::envelopePerimeter(float y);
