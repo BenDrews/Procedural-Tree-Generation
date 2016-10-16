@@ -97,13 +97,13 @@ void App::makeGUI() {
     GuiPane* treePane = debugPane->addPane("Tree");
     treePane->setNewChildSize(500, -1, 300);
 	treePane->addNumberBox("Recursion depth:", &m_maxRecursionDepth, "", GuiTheme::LINEAR_SLIDER, 2, 10);
-	treePane->addNumberBox("Initial height:", &m_initialHeight, "", GuiTheme::LINEAR_SLIDER, 0.5f, 3.0f);
-	treePane->addNumberBox("Circle points:", &m_circlePts, "", GuiTheme::LINEAR_SLIDER, 3, 10);
-	treePane->addNumberBox("Branch sections:", &m_branchSections, "", GuiTheme::LINEAR_SLIDER, 1, 100);
+	treePane->addNumberBox("Initial height:", &m_initialHeight, "", GuiTheme::LOG_SLIDER, 0.5f, 10.0f);
+	treePane->addNumberBox("Circle points:", &m_circlePts, "", GuiTheme::LOG_SLIDER, 3, 100);
+	treePane->addNumberBox("Branch sections:", &m_branchSections, "", GuiTheme::LOG_SLIDER, 1, 100);
     treePane->addDropDownList("Phenotype", m_phenotypes, &m_phenotypesIndex);
     treePane->addButton("Generate tree", [this](){
-		makeTree();
 		drawMessage("Generating tree...");
+        makeTree();
 		ArticulatedModel::clearCache();
 		GApp::loadScene("Tree Testing");
 	});
@@ -131,8 +131,8 @@ void App::makeTree() {
 			m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
 	}
     
+    tree.addMesh(leafMesh);
     tree.toOBJ();
-    leafMesh.toOBJ();
 }
 
 void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int, int)> branchRadius,
@@ -142,7 +142,7 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
 	    //float sectionHeight;
 	    float sectionRadius;
         float distanceAlongBranch = 1.0f; //Ranges from 0.0f to 1.0f
-        Point3 branchEnd = initial.pointToWorldSpace(Point3(0,length,0));
+        Point3 branchEnd = initial.pointToWorldSpace(Point3(0,length*(19.0f/20.0f),0));
         Point3 branchMid = initial.pointToWorldSpace(Point3(0,length*(6.0f/10.0f),0));
 
 
@@ -152,30 +152,48 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
         debugAssert(nextBranches.size() > 0);
 
 
-        // Add vertices of intial circle at the top of the branch we are currently making to mesh
+        // Add vertices of intial circle at the bottom of the branch we are currently making to mesh
 	    for(int i = 0; i < circlePoints; ++i) {
 	    	float angle = (i * 2.0f * pif()) / circlePoints;
             sectionRadius = branchRadius(distanceAlongBranch, nextBranches.size(), currentRecursionDepth);
-            Vector3 vec = Vector3(cos(angle) * sectionRadius, length, sin(angle) * sectionRadius);
+            Vector3 vec = Vector3(cos(angle) * sectionRadius, 0.0f, sin(angle) * sectionRadius);
             vec = initial.pointToWorldSpace(vec);
 	    	mesh.addVertex(vec.x, vec.y, vec.z);  
 	    }
 	    
-        // Add vertices of circles underneath the initial circle to mesh
-	    for(int i = 0; i < branchSections; ++i) {
-            distanceAlongBranch =  (float)(i * length / float(branchSections)) / length;
+        // Add vertices of circles on top of the initial circle to mesh
+	    for(int i = 1; i <= branchSections; ++i) {
+            distanceAlongBranch =  (float)(i) / float(branchSections);
 	    	sectionRadius = branchRadius(distanceAlongBranch, nextBranches.size(), currentRecursionDepth);
 	    	// TODO:: pass a coordinate frame that is returned by space curve function (instead of initial)
             CoordinateFrame section = initial;
             section.translation = initial.pointToWorldSpace(length * spineCurve(distanceAlongBranch));
-             addCylindricSection(mesh, circlePoints, section, sectionRadius);
+            addCylindricSection(mesh, circlePoints, section, sectionRadius);
 	    }
 
+        //Add the leaves
         if (currentRecursionDepth == 1){
+            //Add one leaf on the end of the branch
             CoordinateFrame leaf = initial;
             leaf.translation = branchEnd;
             float leafSize = 0.15f;
             addLeaves(leafMesh, leafSize, leaf);
+            
+            //Add random leaves along branch
+            int leafNumber = 5;
+            float rPitch;
+            float rYaw;
+            float rDisplacement;
+            for(int i = 0; i < 5; ++i){
+                leaf = initial;
+                rDisplacement = ( (float)(rand() % 100) / 100.0f ) * length;
+                rYaw = rand() % 360;
+                rPitch = rand()%40 + 30.0f;  
+                leaf.translation = initial.pointToWorldSpace(Point3(0.0f, rDisplacement, 0.0f));
+                leaf = leaf * CoordinateFrame::fromXYZYPRDegrees(0.0f,0.0f,0.0f,rYaw);
+                leaf = leaf * CoordinateFrame::fromXYZYPRDegrees(0.0f,0.0f,0.0f,0.0f,rPitch);
+                addLeaves(leafMesh, leafSize, leaf);
+            }
         }
         else {
             for (int i = 0; i < nextBranches.length(); ++i) {
@@ -190,20 +208,20 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
 }
 
 
-void App::addLeaves(Mesh& leafMesh, float& leafSize, const CoordinateFrame& initial) const{
+void App::addLeaves(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFrame) const{
     int index = leafMesh.numVertices();
     //float leafSize = length*1.5f;
-    Vector3 vec1 = Vector3(leafSize / 2.0f, 0.0f, 0.0f);
-    vec1 = initial.pointToWorldSpace(vec1);
-    Vector3 vec2 = Vector3(-leafSize / 2.0f, 0.0f, 0.0f);
-    vec2 = initial.pointToWorldSpace(vec2);
-    Vector3 vec3 = Vector3(0.0f, leafSize, 0.0f);
-    vec3 = initial.pointToWorldSpace(vec3);
+    Vector3 vec1 = Vector3(leafSize / 2.0f, leafSize, 0.0f);
+    vec1 = leafFrame.pointToWorldSpace(vec1);
+    Vector3 vec2 = Vector3(-leafSize / 2.0f, leafSize, 0.0f);
+    vec2 = leafFrame.pointToWorldSpace(vec2);
+    Vector3 vec3 = Vector3(0.0f, 0.0f, 0.0f);
+    vec3 = leafFrame.pointToWorldSpace(vec3);
     leafMesh.addVertex(vec1);
     leafMesh.addVertex(vec2);
     leafMesh.addVertex(vec3);
-    leafMesh.addFace(index, index+1, index+2);
-    leafMesh.addFace(index+2, index+1, index);
+    leafMesh.addFace(index, index+1, index+2, 4, 3, 5, "leaf");
+    leafMesh.addFace(index+2, index+1, index, 5, 3, 4, "leaf");
 }
 
 
@@ -219,8 +237,8 @@ void App::addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame&
 	}
 	int offset = index - pts;
 	for(int i = 0; i < pts; ++i) {
-		mesh.addFace(offset + ((i + 1) % pts), offset + i + (pts), offset + i);
-		mesh.addFace(offset + ((i + 1) % pts), offset + ((i + 1) % pts) + (pts), offset + i + (pts));
+		mesh.addFace( offset + i, offset + i + (pts),offset + ((i + 1) % pts), 2, 3, 1, "bark");
+		mesh.addFace(offset + i + (pts), offset + ((i + 1) % pts) + (pts), offset + ((i + 1) % pts), 2, 4, 3, "bark");
 	}
 }
 
@@ -234,12 +252,15 @@ Vector3 App::spineCurve(float t) {
 // Callback functions for the radii of the branches
 float App::branchRadius(float t, int branchingNumber, int recursionDepth) {
     if (recursionDepth == 0){
-        return 0.01f;
+        return 0.005f;
     }
     float end = branchRadius(0.0f, branchingNumber, recursionDepth - 1);
     float base = branchingNumber * (end*end);
     base = sqrt(base);
-
+    float diff = base - end;
+    
+    end += diff/4.0f;
+    //base -= (diff/10.0f);
 
     debugAssert(t >= 0.0f && t <= 1.0f);
     //a, b, and c from the quadratic eq. ax^2 + bx + c = y
@@ -255,33 +276,33 @@ float App::branchRadius(float t, int branchingNumber, int recursionDepth) {
 void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
 
     float newBranchLength = 3.0f * initialLength / 5.0f;
-    float rPitch = rand() % 20 + 25; //This will give a random pitch within the range 25 - 45
+    float rPitch = rand() % 40 + 15; //This will give a random pitch within the range 25 - 45
     float rYaw;
     CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch, 0.0f);
     branch1.translation = branchEnd;
     
-    rPitch = rand() % 20 + 25; 
-    rYaw = rand() % 20 + 80; //This will give a random yaw fom 80 to 100
+    rPitch = rand() % 40 + 15; 
+    rYaw = rand() % 40 + 70; //This will give a random yaw fom 70 to 110
     CoordinateFrame branch2 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw, 0.0f, 0.0f);
     branch2 = branch2 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch, 0.0f);
     branch2.translation = branchEnd;
     
-    rPitch = rand() % 20 + 25; 
-    rYaw = rand() % 20 + 80;
+    rPitch = rand() % 40 + 15; 
+    rYaw = rand() % 40 + 70;
     CoordinateFrame branch3 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw, 0.0f, 0.0f);
     branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -rPitch, 0.0f);
     branch3.translation = branchEnd;
     
-    rPitch = rand() % 20 + 25; 
+    rPitch = rand() % 40 + 15; 
     CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -rPitch, 0.0f);
     branch4.translation = branchEnd;
 
     
-    //These random values will determine how many child branches will be added
-    bool makeBranch1 = (rand() % 100) > 30;
-    bool makeBranch2 = (rand() % 100) > 30;
-    bool makeBranch3 = (rand() % 100) > 30;
-    bool makeBranch4 = (rand() % 100) > 30;
+    //These random values will determine how many child branches will be added (Fix realistic Radii with random child branches)
+    bool makeBranch1 = true;//(rand() % 100) > 30;
+    bool makeBranch2 = true;//(rand() % 100) > 30;
+    bool makeBranch3 = true;//(rand() % 100) > 30;
+    bool makeBranch4 = true;//(rand() % 100) > 30;
 
     if(makeBranch1){
         nextBranches.push(BranchDimensions(branch1, newBranchLength));

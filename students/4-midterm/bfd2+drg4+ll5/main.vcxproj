@@ -101,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="data-files\scene\tree.Scene.Any" />
+    <None Include="data-files\tree.mtl" />
     <None Include="doc-files\report.md.html" />
     <None Include="Doxyfile" />
     <None Include="journal\journal.md.html" />

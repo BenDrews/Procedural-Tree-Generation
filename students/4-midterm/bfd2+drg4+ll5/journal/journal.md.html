@@ -7,6 +7,31 @@
 
 
 
+
+2016-10-16: One OBJ file instead of Two (Diego)
+====================================================
+To do this, I added an addMesh method to the mesh class. What that method did was it first took note of how many vertices already existed. Then it added that number to each face point from the added mesh. This is because the leaf vertices were being added to the tree vertices and the order matters for the face points. Then it added all the vertices and all the faces to our arrays. This went pretty smoothly, so now we have our trees being generated with only one OBJ file.
+
+![](oneObjFile.png)
+
+2016-10-16: Fixing the Mesh bug (Diego)
+=====================================================
+After discussing the bug with Ben, we realized that we actually had two bugs. One was that we were drawing our faces backwards, but another made an inverted face before making any other faces. These two bugs masked eachother. This one time, two wrongs made an almost right. To fix this, I fixed the order of the points when adding the face to the obj file and instead of building our branches from the top down, we built them from the bottom up.
+
+![](meshBugFix.png)
+
+You can also now see that our quadratic interpolation is making a slight curve to our branch radii, exactly as we wanted!
+
+2016-10-15: Adding textures (Diego)
+=====================================================
+I added textures to the OBJ files by making an MTL file and finding some bump maps online. For now, I'm simply adding the texture to each face of each branch section. A better way might be to stretch it out along the branch, but that's work for another day. To do this, I edited the Mesh Class to have an included Face class that stores the texture coordinates and what kind of texture each face has. This is to make consolidating the two obj files into one easier down the line.
+
+![](texture.png)
+
+Those black boxes have to do with my G3D. I'm going to update before moving on.
+
+Side note: At one point I was looking for how to add an alpha mask to an MTL file. I googled that questions and I found a Casual Effects post by Morgan. Thanks 2012 Morgan for helping me with that!
+
 2016-10-14: Add realistic branch radii (Diego)
 =====================================================
 Ben showed me a paper that said that the radius of a branch is the square root of of all its children's radii squared summed together. I added this and made each branch linearly interpolate between its base radius and its child radii. This looked pretty good
