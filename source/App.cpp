@@ -74,7 +74,6 @@ void App::onInit() {
     // developerWindow->videoRecordDialog->setScreenShotFormat("PNG");
     // developerWindow->videoRecordDialog->setCaptureGui(false);
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
-    makeTree();
 
     loadScene(
         //"G3D Sponza"
@@ -102,7 +101,8 @@ void App::makeGUI() {
     treePane->addDropDownList("Phenotype", m_phenotypes, &m_phenotypesIndex);
     treePane->addButton("Generate tree", [this](){
 		drawMessage("Generating tree...");
-        makeTree();
+		Array<Point3> fruitLocations = Array<Point3>();
+        makeTree(fruitLocations);
 		ArticulatedModel::clearCache();
 		GApp::loadScene("Tree Testing");
 	});
@@ -114,7 +114,7 @@ void App::makeGUI() {
 	});
 	treePane->pack();
 
-    // Tree generation GUI
+    // Space tree generation GUI
     GuiPane* spaceTreePane = debugPane->addPane("Space Col Tree");
     spaceTreePane->setNewChildSize(500, -1, 300);
 	spaceTreePane->addNumberBox("Anchor Points:", &m_spaceAnchorCount, "", GuiTheme::LOG_SLIDER, 1, 10000);
@@ -143,21 +143,21 @@ void App::makeGUI() {
 }
 
 
-void App::makeTree() {
+void App::makeTree(Array<Point3>& fruitLocations) {
     Mesh tree = Mesh("tree");
     Mesh leafMesh = Mesh("leaf");
 
 	if (m_phenotypesIndex == 0) {
-		makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), m_initialHeight, [this](float t) {return App::spineCurve(t);}, [this](float t, int branchFactor, int depth) {return App::branchRadius(t, branchFactor, depth);},
+		makeBranch(tree, leafMesh, CoordinateFrame(), m_initialHeight, [this](float t) {return App::straight(t);}, [this](float t, int branchFactor, int depth) {return App::branchRadius(t, branchFactor, depth);},
 			[this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::normalTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
-			m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
+			fruitLocations, m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
 	}
 	if (m_phenotypesIndex == 1) {
-		makeBranch(tree, leafMesh, CoordinateFrame() * CoordinateFrame::fromXYZYPRDegrees(0,0,0,0,0,0), m_initialHeight, [this](float t) {return App::spineCurve(t);}, [this](float t, int branchFactor, int depth) {return App::branchRadius(t, branchFactor, depth);},
+		makeBranch(tree, leafMesh, CoordinateFrame(), m_initialHeight, [this](float t) {return App::straight(t);}, [this](float t, int branchFactor, int depth) {return App::branchRadius(t, branchFactor, depth);},
 			[this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::randomTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
-			m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
+			fruitLocations, m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
 	}
     
     tree.addMesh(leafMesh);
@@ -166,21 +166,20 @@ void App::makeTree() {
 
 
 void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int, int)> branchRadius,
-    std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) const {
+    std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype,
+	Array<Point3>& fruitLocations, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) {
     if (currentRecursionDepth != 0) {
         int index = mesh.numVertices();
 	    //float sectionHeight;
 	    float sectionRadius;
         float distanceAlongBranch = 1.0f; //Ranges from 0.0f to 1.0f
-        Point3 branchEnd = initial.pointToWorldSpace(Point3(0,length*(19.0f/20.0f),0));
-        Point3 branchMid = initial.pointToWorldSpace(Point3(0,length*(6.0f/10.0f),0));
-
+        Point3 branchEnd = initial.pointToWorldSpace(length * spineCurve(19.0f / 20.0f));
+        Point3 branchMid = initial.pointToWorldSpace(length * spineCurve(6.0f / 10.0f));
 
         // callback function to decide how to recurse, populates an array of BranchDimensions which contain coordinate frames and lengths for the next branches
         Array<BranchDimensions> nextBranches;
         phenotype(nextBranches, length, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);
         debugAssert(nextBranches.size() > 0);
-
 
         // Add vertices of intial circle at the bottom of the branch we are currently making to mesh
 	    for(int i = 0; i < circlePoints; ++i) {
@@ -203,11 +202,14 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
 
         //Add the leaves
         if (currentRecursionDepth == 1){
+			Random& rand = Random::threadCommon();
             //Add one leaf on the end of the branch
-            CoordinateFrame leaf = initial;
-            leaf.translation = branchEnd;
+            CoordinateFrame leafFrame = initial;
+            leafFrame.translation = branchEnd;
             float leafSize = 0.15f;
-            addLeaves(leafMesh, leafSize, leaf);
+            addLeaves(leafMesh, leafSize, leafFrame);
+			addFruits(fruitLocations, leafFrame);
+
             
             //Add random leaves along branch
             int leafNumber = 5;
@@ -215,14 +217,14 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
             float rYaw;
             float rDisplacement;
             for(int i = 0; i < 5; ++i){
-                leaf = initial;
-                rDisplacement = ( (float)(rand() % 100) / 100.0f ) * length;
-                rYaw = rand() % 360;
-                rPitch = rand()%40 + 30.0f;  
-                leaf.translation = initial.pointToWorldSpace(Point3(0.0f, rDisplacement, 0.0f));
-                leaf = leaf * CoordinateFrame::fromXYZYPRDegrees(0.0f,0.0f,0.0f,rYaw);
-                leaf = leaf * CoordinateFrame::fromXYZYPRDegrees(0.0f,0.0f,0.0f,0.0f,rPitch);
-                addLeaves(leafMesh, leafSize, leaf);
+                leafFrame = initial;
+                rDisplacement = ( (float)rand.integer(0,100) / 100.0f ) * length;
+                rYaw = rand.integer(0, 360);
+                rPitch = rand.integer(0, 40) + 30.0f;  
+                leafFrame.translation = initial.pointToWorldSpace(Point3(0.0f, rDisplacement, 0.0f));
+                leafFrame = leafFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw);
+                leafFrame = leafFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch);
+                addLeaves(leafMesh, leafSize, leafFrame);
             }
         }
         else {
@@ -231,14 +233,14 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
                 CoordinateFrame branch = nextBranch.frame;
                 float newLength = nextBranch.length;
                 
-                makeBranch(mesh, leafMesh, branch, newLength, spineCurve, branchRadius, phenotype, maxRecursionDepth, currentRecursionDepth - 1, circlePoints, branchSections);   
+                makeBranch(mesh, leafMesh, branch, newLength, spineCurve, branchRadius, phenotype, fruitLocations, maxRecursionDepth, currentRecursionDepth - 1, circlePoints, branchSections);   
             }
         }
     }
 }
 
 
-void App::addLeaves(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFrame) const{
+void App::addLeaves(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFrame) const {
     int index = leafMesh.numVertices();
     //float leafSize = length*1.5f;
     Vector3 vec1 = Vector3(leafSize / 2.0f, leafSize, 0.0f);
@@ -252,6 +254,11 @@ void App::addLeaves(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leaf
     leafMesh.addVertex(vec3);
     leafMesh.addFace(index, index+1, index+2, 4, 3, 5, "leaf");
     leafMesh.addFace(index+2, index+1, index, 5, 3, 4, "leaf");
+}
+
+
+void App::addFruits(Array<Point3>& fruitLocations, const CoordinateFrame& fruitFrame) {
+	fruitLocations.push( fruitFrame.pointToWorldSpace(Vector3(0.0f, 0.0f, 0.0f)) );
 }
 
 
@@ -292,9 +299,12 @@ void App::addCylindricSection(Mesh& mesh, const int& parentIndex, const int& cur
 /**
 	Callback functions for the curve of the tree
 */
-
-Vector3 App::spineCurve(float t) {
+Vector3 App::straight(float t) {
     return Vector3(0.0f, t, 0.0f);
+}
+
+Vector3 App::curvy(float t) { 
+	return Vector3(-sqrt(t), t, 0.0f);
 }
 
 
@@ -336,24 +346,24 @@ float App::envelopePerimeter(float y) {
 void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
 
     float newBranchLength = 3.0f * initialLength / 5.0f;
-    float rPitch = rand() % 40 + 15; //This will give a random pitch within the range 25 - 45
+    float rPitch = rand() % 40 + 15.0f; //This will give a random pitch within the range 25 - 45
     float rYaw;
     CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch, 0.0f);
     branch1.translation = branchEnd;
     
-    rPitch = rand() % 40 + 15; 
-    rYaw = rand() % 40 + 70; //This will give a random yaw fom 70 to 110
+    rPitch = rand() % 40 + 15.0f; 
+    rYaw = rand() % 40 + 70.0f; //This will give a random yaw fom 70 to 110
     CoordinateFrame branch2 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw, 0.0f, 0.0f);
     branch2 = branch2 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch, 0.0f);
     branch2.translation = branchEnd;
     
-    rPitch = rand() % 40 + 15; 
-    rYaw = rand() % 40 + 70;
+    rPitch = rand() % 40 + 15.0f; 
+    rYaw = rand() % 40 + 70.0f;
     CoordinateFrame branch3 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw, 0.0f, 0.0f);
     branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -rPitch, 0.0f);
     branch3.translation = branchEnd;
     
-    rPitch = rand() % 40 + 15; 
+    rPitch = rand() % 40 + 15.0f; 
     CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -rPitch, 0.0f);
     branch4.translation = branchEnd;
 
@@ -519,7 +529,8 @@ void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialL
 	Generates a Scene.Any file that contains an orchard of trees
 */
 void App::generateOrchard() {
-	makeTree();
+	Array<Point3> fruitLocations = Array<Point3>();
+	makeTree(fruitLocations);
 
     TextOutput writer = TextOutput("scene/orchard.Scene.Any");
 
@@ -537,7 +548,16 @@ void App::generateOrchard() {
     writer.printf("treeModel = ArticulatedModel::Specification {");
 	writer.writeNewline();
 	writer.printf("filename = \"tree.OBJ\"; };");
-    writer.writeNewline();
+	writer.writeNewlines(2);
+
+	writer.printf("fruitModel = ArticulatedModel::Specification {");
+	writer.writeNewline();
+	//writer.printf("filename = \"" + fruitModel + ".OBJ\"; };");
+	writer.printf("filename = \"Dollar.obj\";");
+	writer.writeNewline();
+	writer.printf("preprocess = { transformGeometry(all(), Matrix4::scale(0.01, 0.01, 0.01) ); } };");
+	writer.writeNewline();
+
     writer.printf("};");
     writer.writeNewlines(2);
 
@@ -556,20 +576,34 @@ void App::generateOrchard() {
 	writer.printf("depthOfFieldSettings = DepthOfFieldSettings { enabled = true; farBlurRadiusFraction = 0.005; farBlurryPlaneZ = -100; farSharpPlaneZ = -40; focusPlaneZ = -10; lensRadius = 0.01; model = \"NONE\"; nearBlurRadiusFraction = 0.015; nearBlurryPlaneZ = -0.25; nearSharpPlaneZ = -1; };");
     writer.writeNewline();
 	writer.printf("frame = CFrame::fromXYZYPRDegrees(0, 1, 4); };");
-	writer.writeNewline();
-	writer.writeNewlines(2);
 
-    // continuing the entities section, use a for loop to write in 3 shelves on the bookcase
-    for (int i = 0; i < 2; ++i) {
+    for (int i = 0; i < 1; ++i) {
 		float xOffset = 3.0 * i;
-		for (int j = 0; j < 10; ++j) {
+		
+		for (int j = 0; j < 3; ++j) {
 			float zOffset = 2.0 * j;
+
+			writer.writeNewlines(2);
 			writer.printf("tree%d%d = VisibleEntity { model = \"treeModel\";", i, j);
 			writer.writeNewline();
 			writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, 0, %f); };", xOffset, zOffset);
 			writer.writeNewlines(2);
+
+			CoordinateFrame frame = CoordinateFrame(Point3(xOffset, 0.0f, zOffset));
+
+			for (int k = 0; k < fruitLocations.length(); ++k) {
+				Random& rand = Random::threadCommon();
+				int placeFruit = rand.integer(-2, 1);
+				if (placeFruit == 1) {
+					Point3 location = frame.pointToWorldSpace(fruitLocations[k]);
+					writer.printf("fruit%d%d%d = VisibleEntity { model = \"fruitModel\";", i, j, k);
+					writer.writeNewline();
+					writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, %f, %f, 0, 0, %f); };", location.x, location.y - 0.08, location.z, 90.0f);
+					writer.writeNewline();
+				}
+			}
 		}
-    };
+    }
 
     writer.printf("};");
     writer.writeNewlines(2);

@@ -13,7 +13,6 @@ class Face {
         String texture;
         SmallArray<int,3> points;
         SmallArray<int,3> txtPoints;
-
 };
 
 class Mesh {
@@ -32,4 +31,3 @@ class Mesh {
         void toOBJ();
         int numVertices();
 };
-

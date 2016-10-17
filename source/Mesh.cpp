@@ -20,16 +20,15 @@ void Mesh::addVertex(Point3 vertex) {
 
 void Mesh::addMesh(Mesh other){
     int initVertices = numVertices();
-    for(int i = 0; i < other.vertices.size(); ++i){
+    for (int i = 0; i < other.vertices.size(); ++i) {
         addVertex(other.vertices[i]);
     }
     debugAssert(initVertices < numVertices());
-    for(int i = 0; i < other.faces.size(); ++i){
+    for (int i = 0; i < other.faces.size(); ++i) {
         Face face = other.faces[i];
         face.increment(initVertices);
         addFace(face);
     }
-
 }
 
 void Mesh::addFace(int f1, int f2, int f3, int t1, int t2, int t3, String type) {
@@ -55,11 +54,11 @@ void Mesh::toOFF() {
 	TextOutput tOut = TextOutput(offFilename);
 	tOut.printf("OFF\n%d %d 0\n", vertexCount, faceCount);
 
-	for(int i = 0; i < vertexCount; ++i) {
+	for (int i = 0; i < vertexCount; ++i) {
 		Point3 vertex = vertices.at(i);
 		tOut.printf("%f %f %f\n", vertex.x, vertex.y, vertex.z);
 	}
-	for(int i = 0; i < faceCount; ++i) {
+	for (int i = 0; i < faceCount; ++i) {
 		Face face = faces.at(i);
 		tOut.printf("3 %d %d %d\n", face.points[0], face.points[1], face.points[2]);
 	}
@@ -71,14 +70,10 @@ void Mesh::toOBJ() {
 	int faceCount = faces.size();
     String objFilename = filename + (String)".OBJ";
 	TextOutput tOut = TextOutput(objFilename);
-	//tOut.printf("OFF\n%d %d 0\n", vertexCount, faceCount);
+	
+    tOut.printf("mtllib " + filename + ".mtl\n");
 
-
-    debugPrintf( "Faces: %d, Vertices: %d \n", faceCount, vertexCount);
-
-    tOut.printf("mtllib tree.mtl\n");
-
-	for(int i = 0; i < vertexCount; ++i) {
+	for (int i = 0; i < vertexCount; ++i) {
 		Point3 vertex = vertices.at(i);
 		tOut.printf("v %f %f %f\n", vertex.x, vertex.y, vertex.z);
 	}
@@ -86,14 +81,12 @@ void Mesh::toOBJ() {
     // Add texture coordinates
     tOut.printf("vt 0.000000 0.000000\nvt 1.000000 0.000000\nvt 0.000000 1.000000\nvt 1.000000 1.000000\nvt 0.500000 0.000000\n");
 
-	for(int i = 0; i < faceCount; ++i) {
+	for (int i = 0; i < faceCount; ++i) {
 		Face face = faces.at(i);
         String mtl = face.texture;
 		tOut.printf("usemtl " + mtl + "\nf %d/%d %d/%d %d/%d\n", face.points[0] + 1, face.txtPoints[0], face.points[1] + 1, face.txtPoints[1], face.points[2] + 1, face.txtPoints[2]);
 	}
 	tOut.commit();
-
-
 }
 
 int Mesh::numVertices() {
@@ -106,7 +99,7 @@ Face::Face(const String nTexture){
 }
 
 void Face::increment(int pts){
-    for(int i = 0; i < points.size(); ++i ){
+    for (int i = 0; i < points.size(); ++i) {
         points[i] += pts;
     }
 }

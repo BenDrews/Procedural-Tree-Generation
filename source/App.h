@@ -37,13 +37,15 @@ protected:
     /** Called from onInit */
     void makeGUI();
 
-    void makeTree();
+    void makeTree(Array<Point3>& fruitLocations);
     void makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int, int)> branchRadius, 
-        std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) const;
+        std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, Array<Point3>& fruitLocations, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections);
     void addLeaves(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const;
+	void addFruits(Array<Point3>& fruitLocations, const CoordinateFrame& fruitFrame);
     void addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const;
     
-    Vector3 spineCurve(float t);
+    Vector3 straight(float t);
+	Vector3 curvy(float t);
     
     float branchRadius(float t, int childBranches, int recursionDepth);
     
