@@ -36,6 +36,8 @@ protected:
     void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     
+	void App::generateOrchard();
+
     float App::envelopePerimeter(float y);
     //Tree makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode);
     //Array<Point3> generateAnchorPoints(int count, float height, float radius, std::function<float(float)> radiusCurve);

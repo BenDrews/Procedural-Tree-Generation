@@ -83,7 +83,12 @@
         tree = VisibleEntity { 
             frame = CFrame::fromXYZYPRDegrees(0, 0, 0, 0, 0, 0 ); 
             model = "treeModel"; 
-        }; 
+        };
+
+        teapot = VisibleEntity {
+            model = "teapotModel";
+            frame = CFrame::fromXYZYPRDegrees(0, 0, 0);
+        };
         
     }; 
     
@@ -127,6 +132,13 @@
             filename = "tree.OBJ"; 
         }; 
         
+        teapotModel = ArticulatedModel::Specification {
+            filename = "model/teapot/glassTeapot.obj";
+			preprocess = {
+			transformGeometry(all(), Matrix4::scale(0.001, 0.001, 0.001) );
+			}
+        };
+
     }; 
     
     name = "Tree Testing"; 

@@ -107,6 +107,12 @@ void App::makeGUI() {
 		ArticulatedModel::clearCache();
 		GApp::loadScene("Tree Testing");
 	});
+	treePane->addButton("Generate orchard", [this]() {
+		drawMessage("Generating orchard...");
+		generateOrchard();
+		ArticulatedModel::clearCache();
+		GApp::loadScene("Orchard");
+	});
 	treePane->pack();
 
     debugWindow->pack();
@@ -134,6 +140,7 @@ void App::makeTree() {
     tree.addMesh(leafMesh);
     tree.toOBJ();
 }
+
 
 void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int, int)> branchRadius,
     std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) const {
@@ -243,13 +250,17 @@ void App::addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame&
 }
 
 
-// Callback functions for the curve of the tree
+/**
+	Callback functions for the curve of the tree
+*/
 Vector3 App::spineCurve(float t) {
     return Vector3(0.0f, t, 0.0f);
 }
 
 
-// Callback functions for the radii of the branches
+/**
+	Callback functions for the radii of the branches
+*/
 float App::branchRadius(float t, int branchingNumber, int recursionDepth) {
     if (recursionDepth == 0){
         return 0.005f;
@@ -272,7 +283,9 @@ float App::branchRadius(float t, int branchingNumber, int recursionDepth) {
 }
 
 
-// Callback functions for the phenotype of the tree
+/**
+	Callback functions for the phenotype of the tree
+*/
 void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
 
     float newBranchLength = 3.0f * initialLength / 5.0f;
@@ -348,6 +361,69 @@ void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialL
 }
 
 
+/**
+	Generates a Scene.Any file that contains an orchard of trees
+*/
+void App::generateOrchard() {
+	makeTree();
+
+    TextOutput writer = TextOutput("scene/orchard.Scene.Any");
+
+    writer.printf("{");
+    writer.writeNewline();
+    writer.printf("name = \"Orchard\";");
+    writer.writeNewlines(2);
+
+    // models section
+    writer.printf("models = {");
+    writer.writeNewline();
+
+    writer.printf("treeModel = ArticulatedModel::Specification {");
+	writer.writeNewline();
+	writer.printf("filename = \"tree.OBJ\"; };");
+    writer.writeNewline();
+    writer.printf("};");
+    writer.writeNewlines(2);
+
+    // entities section
+    writer.printf("entities = {");
+    writer.writeNewline();
+
+    writer.printf("skybox = Skybox { texture = \"cubemap/plainsky/null_plainsky512_*.jpg\"; };");
+    writer.writeNewlines(2);
+    writer.printf("light = Light {");
+	writer.writeNewline();
+	writer.printf("attenuation = (0, 0, 1); bulbPower = Power3(4e+06); castsShadows = true; frame = CFrame::fromXYZYPRDegrees(-15, 500, -41, -164, -77, 77); shadowMapSize = Vector2int16(2048, 2048); spotHalfAngleDegrees = 5; type = \"SPOT\"; };");
+    writer.writeNewlines(2);
+    writer.printf("camera = Camera {");
+	writer.writeNewline();
+	writer.printf("depthOfFieldSettings = DepthOfFieldSettings { enabled = true; farBlurRadiusFraction = 0.005; farBlurryPlaneZ = -100; farSharpPlaneZ = -40; focusPlaneZ = -10; lensRadius = 0.01; model = \"NONE\"; nearBlurRadiusFraction = 0.015; nearBlurryPlaneZ = -0.25; nearSharpPlaneZ = -1; };");
+    writer.writeNewline();
+	writer.printf("frame = CFrame::fromXYZYPRDegrees(0, 1, 4); };");
+	writer.writeNewline();
+	writer.writeNewlines(2);
+
+    // continuing the entities section, use a for loop to write in 3 shelves on the bookcase
+    for (int i = 0; i < 2; ++i) {
+		float xOffset = 3.0 * i;
+		for (int j = 0; j < 10; ++j) {
+			float zOffset = 2.0 * j;
+			writer.printf("tree%d%d = VisibleEntity { model = \"treeModel\";", i, j);
+			writer.writeNewline();
+			writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, 0, %f); };", xOffset, zOffset);
+			writer.writeNewlines(2);
+		}
+    };
+
+    writer.printf("};");
+    writer.writeNewlines(2);
+
+    writer.printf("};");
+
+    writer.commit();
+}
+
+
 float App::envelopePerimeter(float y) {
     if(y < 0.5f) {
         return 0.0f;
@@ -355,6 +431,7 @@ float App::envelopePerimeter(float y) {
         return 2.0f - (2.0f * y);
     }
 }
+
 
 //Tree App::makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode) {
 //
@@ -423,6 +500,7 @@ float App::envelopePerimeter(float y) {
 //    }
 //    return result;
 //}
+
 
 //Array<Point3> App::generateAnchorPoints(int count, float height, float radius, std::function<float(float)> radiusCurve) {
 //    Random& rng = Random::threadCommon();

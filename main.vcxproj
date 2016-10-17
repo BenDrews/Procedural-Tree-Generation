@@ -100,6 +100,7 @@
     <ResourceCompile Include="resources.rc" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="data-files\scene\orchard.Scene.Any" />
     <None Include="data-files\scene\tree.Scene.Any" />
     <None Include="data-files\tree.mtl" />
     <None Include="doc-files\report.md.html" />
