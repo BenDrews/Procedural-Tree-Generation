@@ -76,8 +76,6 @@ void App::onInit() {
     developerWindow->cameraControlWindow->moveTo(Point2(developerWindow->cameraControlWindow->rect().x0(), 0));
     makeTree();
 
-    //makeTreeSkeleton(5, [this](float y) {return App::envelopePerimeter(y);}, 10.0f, 10.0f, 2.0f, 0.5f, Point3(0,0,0));
-
     loadScene(
         //"G3D Sponza"
         "Tree Testing" // Load something simple
@@ -93,8 +91,9 @@ void App::makeGUI() {
     debugWindow->setVisible(true);
     developerWindow->videoRecordDialog->setEnabled(true);
 
+    debugPane->beginRow(); {
 	// Tree generation GUI
-    GuiPane* treePane = debugPane->addPane("Tree");
+    GuiPane* treePane = debugPane->addPane("L-System Tree");
     treePane->setNewChildSize(500, -1, 300);
 	treePane->addNumberBox("Recursion depth:", &m_maxRecursionDepth, "", GuiTheme::LINEAR_SLIDER, 2, 10);
 	treePane->addNumberBox("Initial height:", &m_initialHeight, "", GuiTheme::LOG_SLIDER, 0.5f, 10.0f);
@@ -115,6 +114,29 @@ void App::makeGUI() {
 	});
 	treePane->pack();
 
+    // Tree generation GUI
+    GuiPane* spaceTreePane = debugPane->addPane("Space Col Tree");
+    spaceTreePane->setNewChildSize(500, -1, 300);
+	spaceTreePane->addNumberBox("Anchor Points:", &m_spaceAnchorCount, "", GuiTheme::LOG_SLIDER, 1, 10000);
+	spaceTreePane->addNumberBox("Height:", &m_spaceHeight, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
+	spaceTreePane->addNumberBox("Radius:", &m_spaceRadius, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
+	spaceTreePane->addNumberBox("Circle Points:", &m_spaceCirclePoints, "", GuiTheme::LOG_SLIDER, 1, 100);
+	spaceTreePane->addNumberBox("Tree Node Distance:", &m_spaceTreeDistance, "", GuiTheme::LOG_SLIDER, 0.01f, 1.0f);
+	spaceTreePane->addNumberBox("Kill Distance:", &m_spaceKillDistance, "", GuiTheme::LINEAR_SLIDER, 1.0f, 10.0f);
+	spaceTreePane->addNumberBox("Branch Initial Radius:", &m_spaceBranchRadius, "", GuiTheme::LOG_SLIDER, 0.1f, 10.0f);
+	spaceTreePane->addNumberBox("Radius Growth:", &m_spaceRadiusGrowth, "", GuiTheme::LINEAR_SLIDER, 2.0f, 3.0f);
+    spaceTreePane->addButton("Generate tree", [this](){
+		drawMessage("Generating tree...");
+
+        shared_ptr<Tree> skeleton = makeTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, Point3(0,0,0));
+        skeletonToMesh(m_spaceCirclePoints, m_spaceBranchRadius, m_spaceRadiusGrowth, "tree", skeleton);
+
+		ArticulatedModel::clearCache();
+		GApp::loadScene("Tree Testing");
+	});
+	spaceTreePane->pack();
+    }
+    debugPane->endRow();
     debugWindow->pack();
     debugWindow->setRect(Rect2D::xywh(0, 0, (float)window()->width(), debugWindow->rect().height()));
 }
@@ -249,10 +271,27 @@ void App::addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame&
 	}
 }
 
+//Version that takes a hard coded index
+void App::addCylindricSection(Mesh& mesh, const int& parentIndex, const int& currentIndex, const int& pts, const CoordinateFrame& origin, const float& radius) const {
+
+    for(int i = 0; i < pts; ++i) {
+		float angle = (i * 2.0f * pif()) / pts;
+        Vector3 vec = Vector3(cos(angle) * radius, 0.0f, sin(angle) * radius);
+        vec = origin.pointToWorldSpace(vec);
+
+		mesh.addVertex(vec);
+	}
+
+	for(int i = 0; i < pts; ++i) {
+		mesh.addFace(parentIndex + ((i + 1) % pts), parentIndex + i, currentIndex + i, 2, 3, 1, "bark");
+		mesh.addFace(currentIndex + ((i + 1) % pts), parentIndex + ((i + 1) % pts), currentIndex + i, 2, 4, 3, "bark");
+	}
+}
 
 /**
 	Callback functions for the curve of the tree
 */
+
 Vector3 App::spineCurve(float t) {
     return Vector3(0.0f, t, 0.0f);
 }
@@ -282,6 +321,13 @@ float App::branchRadius(float t, int branchingNumber, int recursionDepth) {
     return (t*t*a) + (b*t) + c;
 }
 
+float App::envelopePerimeter(float y) {
+    if(y < 0.20f) {
+        return 0.0f;
+    } else {
+        return sin((5*pif() * y / 4) - pif()/4.0f);
+    }
+}
 
 /**
 	Callback functions for the phenotype of the tree
@@ -331,10 +377,94 @@ void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialL
     }
     debugAssert(nextBranches.size() > 0);
 }
+    
+
+shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode) {
+
+    shared_ptr<Tree> result = Tree::create(initTreeNode, nullptr);
+     //Points in space
+    Array<Point3> anchorPoints;
+    generateAnchorPoints(anchorPoints, anchorPointsCount, height, radius, envelopePerimeter);
+    
+    //Tree nodes about to grow
+    Array<shared_ptr<Tree>> growingNodes;
+    
+    //Number of consecutive iterations that don't modify the tree.
+    int staticIterations = 0;
+
+    //Keep generating more tree nodes until all anchor points are killed.
+    while(anchorPoints.size() > 0) {
+        debugPrintf("Anchor nodes remaining: %d\n", anchorPoints.size());
+        growingNodes.fastClear();   
+        
+        //For each anchor, select the closest tree node. Make this a method.
+        for(const Point3& currentAnchor : anchorPoints) {
+            
+            Array<shared_ptr<Tree>> stack;
+            stack.push(result);  
+            shared_ptr<Tree> closestNode = result;
+            shared_ptr<Array<shared_ptr<Tree>>> children;
+
+            while(stack.size() > 0) {
+                shared_ptr<Tree> challenger = stack.pop();
+                if((challenger->getContents() - currentAnchor).magnitude() < (closestNode->getContents() - currentAnchor).magnitude()) {
+                    closestNode = challenger;
+                }
+                children = challenger->getChildren();
+
+                stack.append(*children); //This could be sinful
+            }
+            growingNodes.push(closestNode);
+        }  //Assign the directions for new tree nodes. Make a method
+        std::map<shared_ptr<Tree>, Vector3> growthDirections;
+        growthDirections.clear();
+
+        for(int i = 0; i < anchorPoints.size(); ++i) {
+            shared_ptr<Tree> tempNode = growingNodes[i];
+            if(growthDirections.find(tempNode) == growthDirections.end()) {
+                growthDirections[tempNode] = (anchorPoints[i] - tempNode->getContents()).direction();
+            } else {
+                growthDirections[tempNode] = (growthDirections[tempNode] + (anchorPoints[i] - tempNode->getContents()).direction()).direction();
+            }
+        }
+
+        //Iterate over the selected nodes and spawn new tree nodes. Make a method
+        for(auto it = growthDirections.begin(); it != growthDirections.end(); ++it) {
+            shared_ptr<Tree> parent = it->first;
+        
+            Point3 newPos = parent->getContents() + (nodeDistance * growthDirections[parent]);
+            debugPrintf("New tree node at: %f, %f, %f\n", newPos.x, newPos.y, newPos.z);
+            shared_ptr<Tree> child = Tree::create(newPos, parent);
+            shared_ptr<Array<shared_ptr<Tree>>> children = parent->getChildren();
+            children->push(child);
+        }
+        //Kill anchors too close to the tree.
+        for(Point3 currentAnchor : anchorPoints) {
+            Array<shared_ptr<Tree>> stack;
+            stack.push(result); while(stack.size() > 0) {
+                shared_ptr<Tree> challenger = stack.pop();
+                if((challenger->getContents() - currentAnchor).magnitude() < killDistance * nodeDistance) {
+                    if(anchorPoints.findIndex(currentAnchor) > -1) {
+                        anchorPoints.remove(anchorPoints.findIndex(currentAnchor));
+                    }
+                    staticIterations = 0;
+                    break;
+                }
+                stack.append(*challenger->getChildren());
+            }
+        }
+        staticIterations++;
+        if(staticIterations > 100) {
+            anchorPoints.fastClear();
+        }
+    }
+    return result;
+}
 
 void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
 
     float newBranchLength = 3.0f * initialLength / 5.0f;
+
 
     CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, 35.0f, 0.0f);
     branch1.translation = branchEnd;
@@ -350,8 +480,6 @@ void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialL
     branch4 = branch4 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -35.0f, 0.0f);
     branch4.translation = branchEnd;
     
-    
-
     nextBranches.push(BranchDimensions(branch1, newBranchLength));
     nextBranches.push(BranchDimensions(branch2, newBranchLength));
     nextBranches.push(BranchDimensions(branch3, newBranchLength));
@@ -360,7 +488,6 @@ void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialL
     debugAssert(nextBranches.size() > 0);
 }
 
-
 /**
 	Generates a Scene.Any file that contains an orchard of trees
 */
@@ -368,6 +495,8 @@ void App::generateOrchard() {
 	makeTree();
 
     TextOutput writer = TextOutput("scene/orchard.Scene.Any");
+
+
 
     writer.printf("{");
     writer.writeNewline();
@@ -423,98 +552,83 @@ void App::generateOrchard() {
     writer.commit();
 }
 
-
-float App::envelopePerimeter(float y) {
-    if(y < 0.5f) {
-        return 0.0f;
-    } else {
-        return 2.0f - (2.0f * y);
+void App::generateAnchorPoints(Array<Point3>& anchorPoints, int count, float height, float radius, std::function<float(float)> radiusCurve) {
+    Random& rng = Random::threadCommon();
+    for(int i = 0; i < count; ++i) {
+        Point3 newPoint;
+        do {
+            newPoint = Point3((2.0f * rng.uniform()) - 1.0f, (2.0f * rng.uniform()) - 1.0f, (2.0f * rng.uniform()) - 1.0f);
+        } while(newPoint.xz().length() >= radiusCurve(newPoint.y));
+        anchorPoints.push(Point3(newPoint.x * radius, newPoint.y * height, newPoint.z * radius));
     }
 }
 
+void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, String filename, shared_ptr<Tree>& skeleton) {
+    Mesh treeMesh = Mesh(filename);
+    Mesh leafMesh = Mesh("leaf");
 
-//Tree App::makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode) {
-//
-//    Tree result = Tree(initTreeNode);
-//
-//    Tree testNode = Tree(initTreeNode);
-//
-//    Array<Point3> anchorPointsList = generateAnchorPoints(anchorPoints, height, radius, envelopePerimeter);
-//    
-//    while(anchorPointsList.size() > 0) {
-//        Array<Tree*> selectedNodes = Array<Tree*>();
-//        
-//        //For each anchor, select the closest tree node.
-//        for(int i = 0; i < anchorPointsList.size(); ++i) {
-//            Point3 currentAnchor = anchorPointsList[i];
-//            Array<Tree*> stack = Array<Tree*>(&result);
-//            Tree* closestNode = &result;
-//
-//            while(stack.size() > 0) {
-//                Tree* challenger = stack.pop();
-//                if((challenger->getContents() - currentAnchor).magnitude() < (closestNode->getContents() - currentAnchor).magnitude()) {
-//                    closestNode = challenger;
-//                }
-//                Array<Tree*>* tempArray = challenger->getChildren();
-//                stack.append(*challenger->getChildren());
-//            }
-//            selectedNodes.push(closestNode);
-//        }
-//
-//        //Assign the directions for new tree nodes.
-//        std::map<Tree*, Vector3> nodeDirections;
-//        for(int i = 0; i < anchorPointsList.size(); ++i) {
-//            Tree* tempNode = selectedNodes[i];
-//            if(nodeDirections.find(tempNode) == nodeDirections.end()) {
-//                nodeDirections[tempNode] = (anchorPointsList[i] - tempNode->getContents()).direction();
-//            } else {
-//                nodeDirections[tempNode] = (nodeDirections[tempNode] + (anchorPointsList[i] - tempNode->getContents()).direction()).direction();
-//            }
-//        }
-//
-//        //Iterate over the selected nodes and spawn new tree nodes.
-//        for(auto it = nodeDirections.begin(); it != nodeDirections.end(); ++it) {
-//            Tree* parent = it->first;
-//            Point3 pos1 = parent->getContents();
-//            Point3 pos2 = nodeDistance * nodeDirections[parent];
-//            Tree child = Tree(pos1 + pos2, parent);
-//            Array<Tree*>* children = parent->getChildren();
-//            children->push(&child);
-//        }
-//
-//        //Kill anchors too close to the tree.
-//        for(int i = 0; i < anchorPointsList.size(); ++i) {
-//            Point3 currentAnchor = anchorPointsList[i];
-//
-//            Array<Tree*> stack = Array<Tree*>(&result);
-//
-//            while(stack.size() > 0) {
-//                Tree* challenger = stack.pop();
-//                if((challenger->getContents() - currentAnchor).magnitude() < killDistance * nodeDistance) {
-//                    anchorPointsList.remove(i);
-//                    break;
-//                }
-//                stack.append(*challenger->getChildren());
-//            }
-//        }
-//    }
-//    return result;
-//}
+    Array<shared_ptr<Tree>> stack;
+    Array<shared_ptr<Tree>> bottomUpIter;
+    stack.push(skeleton);
+    bottomUpIter.push(skeleton);
+
+    std::map<shared_ptr<Tree>, int> indexMap;
+    std::map<shared_ptr<Tree>, float> radiusMap;
+
+    int curIndex = 0;
+    while(stack.size() > 0) {
+        shared_ptr<Tree> currentNode = stack.pop();
+        Array<shared_ptr<Tree>> children = *currentNode->getChildren();
 
 
-//Array<Point3> App::generateAnchorPoints(int count, float height, float radius, std::function<float(float)> radiusCurve) {
-//    Random& rng = Random::threadCommon();
-//    Array<Point3> result = Array<Point3>();
-//    for(int i = 0; i < count; ++i) {
-//        Point3 newPoint;
-//        do {
-//            newPoint = Point3(rng.uniform(), rng.uniform(), rng.uniform());
-//        } while(newPoint.xz().length() >= radiusCurve(newPoint.y));
-//        result.push(Point3(newPoint.x * radius, newPoint.y * height, newPoint.z * radius));
-//    }
-//    return result;
-//}
-//
-//void App::skeletonToMesh(float initRadius, float radiusGrowth, String filename, Tree skeleton) {
-//    
-//}
+        indexMap[currentNode] = curIndex;
+        curIndex += circlePoints;
+
+        bottomUpIter.append(children);
+
+        stack.append(children);
+    }
+
+    //Determine the radii for each branch. Has to use the bottom up iterator because
+    //  the radius of each branch depends on the radii of its children.
+    bottomUpIter.reverse();
+    for(shared_ptr<Tree> treeNode : bottomUpIter) {
+        if(treeNode->numChildren() == 0) {
+            radiusMap[treeNode] = initRadius;
+        } else {
+            float tempSum = 0;
+            for(shared_ptr<Tree> child : *treeNode->getChildren()) {
+                tempSum += pow(radiusMap[child], radiusGrowth);
+            }
+            radiusMap[treeNode] = pow(tempSum, (1.0f/radiusGrowth));
+        }
+    }
+
+
+    //Initial circle
+    for(int i = 0; i < circlePoints; ++i) {
+       	float angle = (i * 2.0f * pif()) / circlePoints;
+        float radius = radiusMap[skeleton];
+        Vector3 vec = Vector3(cos(angle) * radius, 0.0f, sin(angle) * radius);
+	    treeMesh.addVertex(vec.x, vec.y, vec.z);
+    }
+
+    stack.fastClear();
+    stack.append(*skeleton->getChildren());
+    while(stack.size() > 0) {
+        shared_ptr<Tree> currentNode = stack.pop();
+        Point3 translation = currentNode->getContents();
+        Point3 direction = (translation - currentNode->getParent()->getContents()).direction();
+        CoordinateFrame nextFrame = CoordinateFrame::fromXYZYPRRadians(translation.x, translation.y, translation.z, -asin(direction.z), 0.0f, -pif()/2.0f + G3D::acos(direction.x));
+   
+        addCylindricSection(treeMesh, indexMap[currentNode->getParent()], indexMap[currentNode], circlePoints, nextFrame, radiusMap[currentNode]);
+        if(currentNode->getChildren()->length() == 0) {
+            float leafSize = 0.5f;
+            addLeaves(leafMesh, leafSize, nextFrame);
+        }
+        stack.append(*currentNode->getChildren());
+    }
+
+    treeMesh.addMesh(leafMesh);
+    treeMesh.toOBJ();
+}

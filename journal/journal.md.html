@@ -6,7 +6,27 @@
             ll5@williams.edu
 
 
+2016-10-16: Space Colonization Take 2 (Ben)
+===========================================================
+After numerous pointer abuses, the Space Colonization algorithm finally output a skeleton. The very first attempt to lay a mesh over skeleton was plagued by a +1 error that resulted in one long tube being threaded through all the vertices.
 
+![Attempt 1](SColAttempt1.jpg)
+
+After that was resolved, the circles for each cylindric section weren't being rotated correctly so we ended up with branches that looked like ribbon pasta.
+
+![Fettuccini Tree](FettucciniTree.jpg)
+
+After a bit of tuning they look better, but I have a feeling the trigonometry is still a bit off. GUI elements were also added to allow variation in the Space Colonization algorithm's parameters.
+
+![Space Colonization At Work](SColTreeNoLeaves.jpg)
+
+Bugs of note: The algorithm is prone to non-terminal behavior on occasion. This manifests as each iteration adding nodes in the exact same place to the exact same parent. To deal with this there is a check in the algorithm that terminates the loop if no anchor points are deleted for 100 iterations in a row. This should probably be changed to a check for if a node gets added in the same place to the same parent. When this behavior occurs, it can be observed in the tree structure as braches that for seemingly no reason balloon out. This bug occurs much more often when there is a low effective kill distance. (Kill distance * Tree Node Distance).
+
+![Bug Symptom](SColBugPicture.jpg)
+
+Added Leaves. The paradigm used for placing leaves in the L-System trees doesn't quite translate.
+
+![Space Colonization with Leaves](SColTreeLeaves.jpg)
 
 2016-10-16: One OBJ file instead of Two (Diego)
 ====================================================
@@ -51,6 +71,11 @@ After looking around, I noticed where the extra branch sections were going, onto
 ![](backfaceBranchSections.png)
 
 This is a bug for another day. I'll add it to the list.
+
+2016-10-13: Space Colonization Take 1 (Ben)
+===========================================================
+A Tree data structure has been made to help with storing the tree node skeleton. Logic exists to perform the skeleton creating algorithm, but there currently is a bug where after the first iteration, subsequent iterations do not properly update the children array.
+
 
 2016-10-13: Adding some GUI (Lylia)
 =====================================================

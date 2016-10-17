@@ -95,6 +95,7 @@
     <ClCompile Include="source\App.cpp" />
     <ClCompile Include="source\BranchDimensions.cpp" />
     <ClCompile Include="source\Mesh.cpp" />
+    <ClCompile Include="source\Tree.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources.rc" />
