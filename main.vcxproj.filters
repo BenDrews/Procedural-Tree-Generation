@@ -21,9 +21,6 @@
     <ClInclude Include="source\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="source\Tree.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\BranchDimensions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -38,9 +35,6 @@
     <None Include="doc-files\report.md.html" />
     <None Include="data-files\scene\tree.Scene.Any">
       <Filter>Scene Files</Filter>
-    </None>
-    <None Include="data-files\tree.mtl">
-      <Filter>Source Files</Filter>
     </None>
     <None Include="data-files\scene\orchard.Scene.Any">
       <Filter>Scene Files</Filter>

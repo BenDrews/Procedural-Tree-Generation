@@ -89,7 +89,6 @@
     <ClInclude Include="source\App.h" />
     <ClInclude Include="source\BranchDimensions.h" />
     <ClInclude Include="source\Mesh.h" />
-    <ClInclude Include="source\Tree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\App.cpp" />
@@ -103,7 +102,6 @@
   <ItemGroup>
     <None Include="data-files\scene\orchard.Scene.Any" />
     <None Include="data-files\scene\tree.Scene.Any" />
-    <None Include="data-files\tree.mtl" />
     <None Include="doc-files\report.md.html" />
     <None Include="Doxyfile" />
     <None Include="journal\journal.md.html" />
