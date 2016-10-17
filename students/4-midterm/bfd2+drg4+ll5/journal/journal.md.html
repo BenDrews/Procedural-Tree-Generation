@@ -6,9 +6,35 @@
             ll5@williams.edu
 
 
+Self Evaluation
+==================================
+We deserve an A on the project. Our workflow was excellent and we reached MVP on our project within 2 days of work. This gave us a lot of time to polish and add interesting features to our program. We were able to address all of our MVP specification goals. Our code is clear, readable, and well-structured. We all learned a lot about tree generating algorithms and how the shapes of trees can be described mathematically.
+
+
+2016-10-16: Making trees with fruits (Lylia)
+====================================================
+To make our trees start growing fruits, I added an extra parameter to makeTree and makeBranch. It is an Array of Point3s which stores the locations of where fruits would be placed with respect to the coordinate frame of the base of the tree. The Array is populated on the call of makeBranch at recursion depth 1, at the same time at which leaves are added to the tree.
+
+![A teapot tree](treesWithFruits.png)
+
+To add some variation between trees, I use a G3D::Random to choose an integer in the range [-2, 1] and only if the integer is 1 do I actually place a fruit in the scene. As a result, different trees grow fruits in different places.
+
+The next steps are to add functionality for adding different types of fruit (instead of just teapot fruits), and add random rotations of the fruits so they don't all face in the same direction.
+
+!["Money trees is the perfect place for shade and that's just how I feel" - Kendrick Lamar, 2012](moneyTrees.png)
+
+
+2016-10-16: Starting the custom scene (Lylia)
+====================================================
+To start our orchard scene, I added a function generateOrchard to the App class which generates a Scene.Any file with any number of rows of trees in it. I pretty much just took the function I had written in the first Cubes lab to procedurally generate a bookshelf and edited it to add many trees instead of many books.
+
+![A small orchard](firstOrchard.png)
+
+
 2016-10-16: Space Colonization Take 2 (Ben)
 ===========================================================
 After numerous pointer abuses, the Space Colonization algorithm finally output a skeleton. The very first attempt to lay a mesh over skeleton was plagued by a +1 error that resulted in one long tube being threaded through all the vertices.
+>>>>>>> .r1726
 
 ![Attempt 1](SColAttempt1.jpg)
 
@@ -28,11 +54,13 @@ Added Leaves. The paradigm used for placing leaves in the L-System trees doesn't
 
 ![Space Colonization with Leaves](SColTreeLeaves.jpg)
 
+
 2016-10-16: One OBJ file instead of Two (Diego)
 ====================================================
 To do this, I added an addMesh method to the mesh class. What that method did was it first took note of how many vertices already existed. Then it added that number to each face point from the added mesh. This is because the leaf vertices were being added to the tree vertices and the order matters for the face points. Then it added all the vertices and all the faces to our arrays. This went pretty smoothly, so now we have our trees being generated with only one OBJ file.
 
 ![](oneObjFile.png)
+
 
 2016-10-16: Fixing the Mesh bug (Diego)
 =====================================================
@@ -41,6 +69,7 @@ After discussing the bug with Ben, we realized that we actually had two bugs. On
 ![](meshBugFix.png)
 
 You can also now see that our quadratic interpolation is making a slight curve to our branch radii, exactly as we wanted!
+
 
 2016-10-15: Adding textures (Diego)
 =====================================================
@@ -51,6 +80,7 @@ I added textures to the OBJ files by making an MTL file and finding some bump ma
 Those black boxes have to do with my G3D. I'm going to update before moving on.
 
 Side note: At one point I was looking for how to add an alpha mask to an MTL file. I googled that questions and I found a Casual Effects post by Morgan. Thanks 2012 Morgan for helping me with that!
+
 
 2016-10-14: Add realistic branch radii (Diego)
 =====================================================
@@ -71,6 +101,7 @@ After looking around, I noticed where the extra branch sections were going, onto
 ![](backfaceBranchSections.png)
 
 This is a bug for another day. I'll add it to the list.
+
 
 2016-10-13: Space Colonization Take 1 (Ben)
 ===========================================================
