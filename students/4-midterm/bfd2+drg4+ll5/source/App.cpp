@@ -2,7 +2,7 @@
 #include "App.h"
 #include "Mesh.h"
 #include "BranchDimensions.h"
-//#include "Tree.h"
+#include "Tree.h"
 #include <cmath>
 #include <map>
 #include <tuple>
@@ -421,7 +421,7 @@ shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<floa
                 }
                 children = challenger->getChildren();
 
-                stack.append(*children); //This could be sinful
+                stack.append(*children);
             }
             if(!isNull(closestNode)) {
                 growingNodes.push(closestNode);
