@@ -1,3 +1,5 @@
+
+
 /**
   \file App.h
 
@@ -7,6 +9,7 @@
 #pragma once
 #include <G3D/G3DAll.h>
 #include "Mesh.h"
+#include "Tree.h"
 #include "BranchDimensions.h"
 //#include "Tree.h"
 
@@ -19,6 +22,16 @@ protected:
 	int m_branchSections = 1;
 	const Array<String> m_phenotypes = Array<String>("Normal", "Random");
 	int m_phenotypesIndex = 0;
+
+    int m_spaceAnchorCount = 1000;
+    float m_spaceHeight = 10.0f;
+    float m_spaceRadius = 10.0f;
+    int m_spaceCirclePoints = 10;
+    float m_spaceTreeDistance = 0.1f;
+    float m_spaceKillDistance = 2.0f;
+    float m_spaceBranchRadius = 0.01f;
+    float m_spaceRadiusGrowth = 2.0f;
+        
 
     /** Called from onInit */
     void makeGUI();
@@ -33,16 +46,17 @@ protected:
     
     float branchRadius(float t, int childBranches, int recursionDepth);
     
+    shared_ptr<Tree> makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode);
+    void generateAnchorPoints(Array<Point3>& anchorPoints, int count, float height, float radius, std::function<float(float)> radiusCurve);
+    void skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, String filename, shared_ptr<Tree>& skeleton);
     void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     
 	void App::generateOrchard();
+    void addCylindricSection(Mesh& mesh, const int& parentIndex, const int& currentIndex, const int& pts, const CoordinateFrame& origin, const float& radius) const;
 
     float App::envelopePerimeter(float y);
-    //Tree makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode);
-    //Array<Point3> generateAnchorPoints(int count, float height, float radius, std::function<float(float)> radiusCurve);
-    //void skeletonToMesh(float initRadius, float radiusGrowth, String filename, Tree Skeleton);
-
+  
 public:
     App(const GApp::Settings& settings = GApp::Settings());
     virtual void onInit() override;

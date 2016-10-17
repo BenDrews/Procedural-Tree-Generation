@@ -138,7 +138,6 @@
 			transformGeometry(all(), Matrix4::scale(0.001, 0.001, 0.001) );
 			}
         };
-
     }; 
     
     name = "Tree Testing"; 
