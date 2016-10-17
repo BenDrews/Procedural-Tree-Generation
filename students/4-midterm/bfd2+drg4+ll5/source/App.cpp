@@ -123,12 +123,13 @@ void App::makeGUI() {
 	spaceTreePane->addNumberBox("Circle Points:", &m_spaceCirclePoints, "", GuiTheme::LOG_SLIDER, 1, 100);
 	spaceTreePane->addNumberBox("Tree Node Distance:", &m_spaceTreeDistance, "", GuiTheme::LOG_SLIDER, 0.01f, 1.0f);
 	spaceTreePane->addNumberBox("Kill Distance:", &m_spaceKillDistance, "", GuiTheme::LINEAR_SLIDER, 1.0f, 10.0f);
-	spaceTreePane->addNumberBox("Branch Initial Radius:", &m_spaceBranchRadius, "", GuiTheme::LOG_SLIDER, 0.1f, 10.0f);
+	spaceTreePane->addNumberBox("Branch Initial Radius:", &m_spaceBranchRadius, "", GuiTheme::LOG_SLIDER, 0.01f, 10.0f);
 	spaceTreePane->addNumberBox("Radius Growth:", &m_spaceRadiusGrowth, "", GuiTheme::LINEAR_SLIDER, 2.0f, 3.0f);
+	spaceTreePane->addNumberBox("Attraction Radius:", &m_spaceAttractionRadius, "", GuiTheme::LOG_SLIDER, 1.0f, 100.0f);
     spaceTreePane->addButton("Generate tree", [this](){
 		drawMessage("Generating tree...");
 
-        shared_ptr<Tree> skeleton = makeTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, Point3(0,0,0));
+        shared_ptr<Tree> skeleton = makeTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, m_spaceAttractionRadius, Point3(0,0,0));
         skeletonToMesh(m_spaceCirclePoints, m_spaceBranchRadius, m_spaceRadiusGrowth, "tree", skeleton);
 
 		ArticulatedModel::clearCache();
@@ -379,13 +380,16 @@ void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialL
 }
     
 
-shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode) {
+shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, float attractionRadius, Point3 initTreeNode) {
 
     shared_ptr<Tree> result = Tree::create(initTreeNode, nullptr);
      //Points in space
     Array<Point3> anchorPoints;
     generateAnchorPoints(anchorPoints, anchorPointsCount, height, radius, envelopePerimeter);
+    Array<Point3> newAnchors;
     
+    anchorPointsCount *= 0.01f;
+
     //Tree nodes about to grow
     Array<shared_ptr<Tree>> growingNodes;
     
@@ -397,29 +401,38 @@ shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<floa
         debugPrintf("Anchor nodes remaining: %d\n", anchorPoints.size());
         growingNodes.fastClear();   
         
+        generateAnchorPoints(newAnchors, anchorPointsCount, height, radius, envelopePerimeter);
+        anchorPoints.append(newAnchors);
+        anchorPointsCount *= 0.9f;
+
         //For each anchor, select the closest tree node. Make this a method.
         for(const Point3& currentAnchor : anchorPoints) {
             
             Array<shared_ptr<Tree>> stack;
             stack.push(result);  
-            shared_ptr<Tree> closestNode = result;
+            shared_ptr<Tree> closestNode = nullptr;
             shared_ptr<Array<shared_ptr<Tree>>> children;
 
             while(stack.size() > 0) {
                 shared_ptr<Tree> challenger = stack.pop();
-                if((challenger->getContents() - currentAnchor).magnitude() < (closestNode->getContents() - currentAnchor).magnitude()) {
+                float distanceToNode = (challenger->getContents() - currentAnchor).magnitude();
+                if(distanceToNode < attractionRadius && (isNull(closestNode) || distanceToNode < (closestNode->getContents() - currentAnchor).magnitude())) {
                     closestNode = challenger;
                 }
                 children = challenger->getChildren();
 
                 stack.append(*children); //This could be sinful
             }
-            growingNodes.push(closestNode);
-        }  //Assign the directions for new tree nodes. Make a method
+            if(!isNull(closestNode)) {
+                growingNodes.push(closestNode);
+            }
+        }  
+        
+        //Assign the directions for new tree nodes. Make a method
         std::map<shared_ptr<Tree>, Vector3> growthDirections;
         growthDirections.clear();
 
-        for(int i = 0; i < anchorPoints.size(); ++i) {
+        for(int i = 0; i < growingNodes.size(); ++i) {
             shared_ptr<Tree> tempNode = growingNodes[i];
             if(growthDirections.find(tempNode) == growthDirections.end()) {
                 growthDirections[tempNode] = (anchorPoints[i] - tempNode->getContents()).direction();
@@ -429,6 +442,7 @@ shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<floa
         }
 
         //Iterate over the selected nodes and spawn new tree nodes. Make a method
+        bool noNewNodes = true;
         for(auto it = growthDirections.begin(); it != growthDirections.end(); ++it) {
             shared_ptr<Tree> parent = it->first;
         
@@ -436,8 +450,21 @@ shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<floa
             debugPrintf("New tree node at: %f, %f, %f\n", newPos.x, newPos.y, newPos.z);
             shared_ptr<Tree> child = Tree::create(newPos, parent);
             shared_ptr<Array<shared_ptr<Tree>>> children = parent->getChildren();
-            children->push(child);
+            bool isNewNode = true;
+            for(int i = 0; i < children->length(); ++i) {
+                if(children->operator[](i)->getContents().fuzzyEq(newPos)) {
+                    isNewNode = false;
+                }
+            }
+            if(isNewNode) {
+               children->push(child);
+               noNewNodes = false;
+            }
         }
+        if(noNewNodes) {
+            anchorPoints.clear();
+        }
+
         //Kill anchors too close to the tree.
         for(Point3 currentAnchor : anchorPoints) {
             Array<shared_ptr<Tree>> stack;
