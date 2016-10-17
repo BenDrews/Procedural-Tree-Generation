@@ -24,13 +24,14 @@ protected:
 	int m_phenotypesIndex = 0;
 
     int m_spaceAnchorCount = 1000;
-    float m_spaceHeight = 10.0f;
+    float m_spaceHeight = 20.0f;
     float m_spaceRadius = 10.0f;
     int m_spaceCirclePoints = 10;
     float m_spaceTreeDistance = 0.1f;
     float m_spaceKillDistance = 2.0f;
     float m_spaceBranchRadius = 0.01f;
     float m_spaceRadiusGrowth = 2.0f;
+    float m_spaceAttractionRadius = 100.0f;
         
 
     /** Called from onInit */
@@ -46,7 +47,7 @@ protected:
     
     float branchRadius(float t, int childBranches, int recursionDepth);
     
-    shared_ptr<Tree> makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, Point3 initTreeNode);
+    shared_ptr<Tree> makeTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, float attractionRadius, Point3 initTreeNode);
     void generateAnchorPoints(Array<Point3>& anchorPoints, int count, float height, float radius, std::function<float(float)> radiusCurve);
     void skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, String filename, shared_ptr<Tree>& skeleton);
     void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
