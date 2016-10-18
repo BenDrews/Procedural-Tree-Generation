@@ -135,6 +135,7 @@ void App::makeGUI() {
 		ArticulatedModel::clearCache();
 		GApp::loadScene("Tree Testing");
 	});
+    spaceTreePane->moveRightOf(treePane);
 	spaceTreePane->pack();
     }
     debugPane->endRow();
