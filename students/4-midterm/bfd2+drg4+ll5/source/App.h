@@ -27,7 +27,7 @@ protected:
     float m_spaceHeight = 20.0f;
     float m_spaceRadius = 10.0f;
     int m_spaceCirclePoints = 10;
-    float m_spaceTreeDistance = 0.1f;
+    float m_spaceTreeDistance = 0.4f;
     float m_spaceKillDistance = 2.0f;
     float m_spaceBranchRadius = 0.01f;
     float m_spaceRadiusGrowth = 2.0f;

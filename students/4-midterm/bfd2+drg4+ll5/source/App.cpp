@@ -91,56 +91,58 @@ void App::makeGUI() {
     developerWindow->videoRecordDialog->setEnabled(true);
 
     debugPane->beginRow(); {
-	// Tree generation GUI
-    GuiPane* treePane = debugPane->addPane("L-System Tree");
-    treePane->setNewChildSize(500, -1, 300);
-	treePane->addNumberBox("Recursion depth:", &m_maxRecursionDepth, "", GuiTheme::LINEAR_SLIDER, 2, 10);
-	treePane->addNumberBox("Initial height:", &m_initialHeight, "", GuiTheme::LOG_SLIDER, 0.5f, 10.0f);
-	treePane->addNumberBox("Circle points:", &m_circlePts, "", GuiTheme::LOG_SLIDER, 3, 100);
-	treePane->addNumberBox("Branch sections:", &m_branchSections, "", GuiTheme::LOG_SLIDER, 1, 100);
-    treePane->addDropDownList("Phenotype", m_phenotypes, &m_phenotypesIndex);
-    treePane->addButton("Generate tree", [this](){
-		drawMessage("Generating tree...");
-		Array<Point3> fruitLocations = Array<Point3>();
-        makeTree(fruitLocations);
-		ArticulatedModel::clearCache();
-		GApp::loadScene("Tree Testing");
-	});
-	treePane->addButton("Generate orchard", [this]() {
-		drawMessage("Generating orchard...");
-		generateOrchard();
-		ArticulatedModel::clearCache();
-		GApp::loadScene("Orchard");
-	});
-	treePane->pack();
 
-    // Space tree generation GUI
-    GuiPane* spaceTreePane = debugPane->addPane("Space Col Tree");
-    spaceTreePane->setNewChildSize(500, -1, 300);
-	spaceTreePane->addNumberBox("Anchor Points:", &m_spaceAnchorCount, "", GuiTheme::LOG_SLIDER, 1, 10000);
-	spaceTreePane->addNumberBox("Height:", &m_spaceHeight, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
-	spaceTreePane->addNumberBox("Radius:", &m_spaceRadius, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
-	spaceTreePane->addNumberBox("Circle Points:", &m_spaceCirclePoints, "", GuiTheme::LOG_SLIDER, 1, 100);
-	spaceTreePane->addNumberBox("Tree Node Distance:", &m_spaceTreeDistance, "", GuiTheme::LOG_SLIDER, 0.01f, 1.0f);
-	spaceTreePane->addNumberBox("Kill Distance:", &m_spaceKillDistance, "", GuiTheme::LINEAR_SLIDER, 1.0f, 10.0f);
-	spaceTreePane->addNumberBox("Branch Initial Radius:", &m_spaceBranchRadius, "", GuiTheme::LOG_SLIDER, 0.01f, 10.0f);
-	spaceTreePane->addNumberBox("Radius Growth:", &m_spaceRadiusGrowth, "", GuiTheme::LINEAR_SLIDER, 2.0f, 3.0f);
-	spaceTreePane->addNumberBox("Attraction Radius:", &m_spaceAttractionRadius, "", GuiTheme::LOG_SLIDER, 1.0f, 100.0f);
-    spaceTreePane->addButton("Generate tree", [this](){
-		drawMessage("Generating tree...");
+        GuiTabPane* containerPane = debugPane->addTabPane();
+	    
+        // L-System Tree generation GUI
+        GuiPane* treePane = containerPane->addTab("L-System Tree");
+        treePane->setNewChildSize(500, -1, 300);
+	    treePane->addNumberBox("Recursion depth:", &m_maxRecursionDepth, "", GuiTheme::LINEAR_SLIDER, 2, 10);
+	    treePane->addNumberBox("Initial height:", &m_initialHeight, "", GuiTheme::LOG_SLIDER, 0.5f, 10.0f);
+	    treePane->addNumberBox("Circle points:", &m_circlePts, "", GuiTheme::LOG_SLIDER, 3, 100);
+	    treePane->addNumberBox("Branch sections:", &m_branchSections, "", GuiTheme::LOG_SLIDER, 1, 100);
+        treePane->addDropDownList("Phenotype", m_phenotypes, &m_phenotypesIndex);
+        treePane->addButton("Generate tree", [this](){
+	    	drawMessage("Generating tree...");
+	    	Array<Point3> fruitLocations = Array<Point3>();
+            makeTree(fruitLocations);
+	    	ArticulatedModel::clearCache();
+	    	GApp::loadScene("Tree Testing");
+	    });
+	    treePane->addButton("Generate orchard", [this]() {
+	    	drawMessage("Generating orchard...");
+	    	generateOrchard();
+	    	ArticulatedModel::clearCache();
+	    	GApp::loadScene("Orchard");
+	    });
+	    treePane->pack();
 
-        shared_ptr<Tree> skeleton = makeTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, m_spaceAttractionRadius, Point3(0,0,0));
-        skeletonToMesh(m_spaceCirclePoints, m_spaceBranchRadius, m_spaceRadiusGrowth, "tree", skeleton);
+        // Space tree generation GUI
+        GuiPane* spaceTreePane = containerPane->addTab("Space Col Tree");
+        spaceTreePane->setNewChildSize(500, -1, 300);
+	    spaceTreePane->addNumberBox("Anchor Points:", &m_spaceAnchorCount, "", GuiTheme::LOG_SLIDER, 1, 10000);
+	    spaceTreePane->addNumberBox("Height:", &m_spaceHeight, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
+	    spaceTreePane->addNumberBox("Radius:", &m_spaceRadius, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
+	    spaceTreePane->addNumberBox("Circle Points:", &m_spaceCirclePoints, "", GuiTheme::LOG_SLIDER, 1, 100);
+	    spaceTreePane->addNumberBox("Tree Node Distance:", &m_spaceTreeDistance, "", GuiTheme::LOG_SLIDER, 0.01f, 1.0f);
+	    spaceTreePane->addNumberBox("Kill Distance:", &m_spaceKillDistance, "", GuiTheme::LINEAR_SLIDER, 1.0f, 10.0f);
+	    spaceTreePane->addNumberBox("Branch Initial Radius:", &m_spaceBranchRadius, "", GuiTheme::LOG_SLIDER, 0.01f, 10.0f);
+	    spaceTreePane->addNumberBox("Radius Growth:", &m_spaceRadiusGrowth, "", GuiTheme::LINEAR_SLIDER, 2.0f, 3.0f);
+	    spaceTreePane->addNumberBox("Attraction Radius:", &m_spaceAttractionRadius, "", GuiTheme::LOG_SLIDER, 1.0f, 100.0f);
+        spaceTreePane->addButton("Generate tree", [this](){
+	    	drawMessage("Generating tree...");
 
-		ArticulatedModel::clearCache();
-		GApp::loadScene("Tree Testing");
-	});
-    spaceTreePane->moveRightOf(treePane);
-	spaceTreePane->pack();
-    }
-    debugPane->endRow();
-    debugWindow->pack();
-    debugWindow->setRect(Rect2D::xywh(0, 0, (float)window()->width(), debugWindow->rect().height()));
+            shared_ptr<Tree> skeleton = makeTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, m_spaceAttractionRadius, Point3(0,0,0));
+            skeletonToMesh(m_spaceCirclePoints, m_spaceBranchRadius, m_spaceRadiusGrowth, "tree", skeleton);
+
+	    	ArticulatedModel::clearCache();
+	    	GApp::loadScene("Tree Testing");
+	    });
+	    spaceTreePane->pack();
+        }
+        debugPane->endRow();
+        debugWindow->pack();
+        debugWindow->setRect(Rect2D::xywh(0, 0, (float)window()->width(), debugWindow->rect().height()));
 }
 
 
@@ -680,13 +682,16 @@ void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth,
     while(stack.size() > 0) {
         shared_ptr<Tree> currentNode = stack.pop();
         Point3 translation = currentNode->getContents();
-        Point3 direction = (translation - currentNode->getParent()->getContents()).direction();
-        CoordinateFrame nextFrame = CoordinateFrame::fromXYZYPRRadians(translation.x, translation.y, translation.z, -asin(direction.z), 0.0f, -pif()/2.0f + G3D::acos(direction.x));
-   
+        Vector3 x, y, z;
+        y = (currentNode->getParent()->getContents() - translation).direction();
+        y.getTangents(x,z);
+        CoordinateFrame nextFrame = CoordinateFrame(Matrix3::fromColumns(x, y, z), translation);
+        CoordinateFrame leafFrame = CoordinateFrame(Matrix3::fromColumns(-x, -y, -z), translation);
+
         addCylindricSection(treeMesh, indexMap[currentNode->getParent()], indexMap[currentNode], circlePoints, nextFrame, radiusMap[currentNode]);
         if(currentNode->getChildren()->length() == 0) {
             float leafSize = 0.5f;
-            addLeaves(leafMesh, leafSize, nextFrame);
+            addLeaves(leafMesh, leafSize, leafFrame);
         }
         stack.append(*currentNode->getChildren());
     }
