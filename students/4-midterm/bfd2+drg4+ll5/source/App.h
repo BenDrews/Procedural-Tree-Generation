@@ -23,6 +23,8 @@ protected:
 
 	int m_numRows = 2;
 	int m_numTrees = 3;
+	const Array<String> m_types = Array<String>("L-System", "Space Colonization");
+	int m_typesIndex = 0;
 	const Array<String> m_fruits = Array<String>("Apple", "Money", "Teapot");
 	int m_fruitsIndex = 0;
 	Array<FruitDimensions> fruitDims;
@@ -31,7 +33,7 @@ protected:
     float m_spaceHeight = 20.0f;
     float m_spaceRadius = 10.0f;
     int m_spaceCirclePoints = 10;
-    float m_spaceTreeDistance = 0.4f;
+    float m_spaceTreeDistance = 0.6f;
     float m_spaceKillDistance = 2.0f;
     float m_spaceBranchRadius = 0.01f;
     float m_spaceRadiusGrowth = 2.0f;
@@ -41,12 +43,13 @@ protected:
     /** Called from onInit */
     void makeGUI();
 
-    void makeLTree(Array<Point3>& fruitLocations);
+    void makeLTree(String filename, Array<Point3>& fruitLocations);
     shared_ptr<Tree> makeLTreeSkeleton(const CoordinateFrame& initial, std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, std::function<Vector3(float)> spineCurve, float length, int maxRecursionDepth, int currentRecursionDepth, shared_ptr<Tree> parent = nullptr);
     void buildTree(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std::function<Vector3(float)> spineCurve, std::function<float(float, shared_ptr<Tree>)> branchRadius, Array<Point3>& fruitLocations, int circlePoints, int branchSections, float initialLength);
     float distanceAlongBranch = 0.0f;
     void addLeaf(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const;
     void addLeaves(CoordinateFrame& initial, float length, Mesh& leafMesh, Array<Point3>& fruitLocations);
+
 	void addFruits(Array<Point3>& fruitLocations, const CoordinateFrame& fruitFrame);
     void addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const;
     
@@ -57,7 +60,7 @@ protected:
     
     shared_ptr<Tree> makeSCTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, float attractionRadius, Point3 initTreeNode);
     void generateAnchorPoints(Array<Point3>& anchorPoints, int count, float height, float radius, std::function<float(float)> radiusCurve);
-    void skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, String filename, shared_ptr<Tree>& skeleton);
+    void skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, String filename, shared_ptr<Tree>& skeleton, Array<Point3>& fruitLocations);
     void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     
