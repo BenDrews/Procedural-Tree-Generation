@@ -9,12 +9,4 @@ BranchDimensions::BranchDimensions() {
 BranchDimensions::BranchDimensions(CoordinateFrame f, float len) {
     frame = f;
     length = len;
-}
-
-//CoordinateFrame BranchDimensions::frame() {
-//    return frame;
-//}
-//
-//float BranchDimensions::length() {
-//    return length;
-//}
+};
