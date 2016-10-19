@@ -90,6 +90,7 @@
     <ClInclude Include="source\BranchDimensions.h" />
     <ClInclude Include="source\FruitDimensions.h" />
     <ClInclude Include="source\Mesh.h" />
+    <ClInclude Include="source\Tree.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="source\App.cpp" />

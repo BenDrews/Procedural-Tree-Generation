@@ -8,16 +8,16 @@
 
 class Tree {
 	protected:
-        Point3 mContents;
+        CoordinateFrame mContents;
         shared_ptr<Array<shared_ptr<Tree>>> mChildren;
         shared_ptr<Tree> mParent;
 	public:
         Tree();
-        Tree(Point3 contents, shared_ptr<Tree> parent);
+        Tree(CoordinateFrame contents, shared_ptr<Tree> parent);
         
-        static shared_ptr<Tree> create(Point3 contents, shared_ptr<Tree> parent);
-        void setContents(Point3 contents);
-        Point3 getContents() const;
+        static shared_ptr<Tree> create(CoordinateFrame contents, shared_ptr<Tree> parent);
+        void setContents(CoordinateFrame contents);
+        CoordinateFrame getContents() const;
 
         void addChild(shared_ptr<Tree> child);
         shared_ptr<Array<shared_ptr<Tree>>> getChildren();
