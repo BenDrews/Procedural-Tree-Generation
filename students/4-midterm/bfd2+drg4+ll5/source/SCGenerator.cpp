@@ -10,6 +10,7 @@
 #include <tuple>
 #include <stdlib.h>
 
+/**Main methods for the space colonization algorithm **/
 shared_ptr<Tree> SCGenerator::makeSCTreeSkeleton(int anchorPointsCount, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, float attractionRadius, float discountRate, Point3 initTreeNode) {
 
     shared_ptr<Tree> result = Tree::create(initTreeNode, nullptr);
