@@ -11,10 +11,8 @@ class FruitDimensions {
         String filename;
         float scale;
 		float yOffset;
-		//float yaw;
-		//float pitch;
-		//float roll;
+		float roll;
 
         FruitDimensions();
-        FruitDimensions(String filename, float scale, float yOffset);
+        FruitDimensions(String filename, float scale, float yOffset, float roll);
 };
