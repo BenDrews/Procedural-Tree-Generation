@@ -1,0 +1,35 @@
+#
+# Wavefront material file: c:\documents and settings\admir\desktop\nove zivotinje\wolf\wolf-obj\wolf-obj.mtl
+#
+# Converted by the PolyTrans geometry converter from Okino Computer Graphics, Inc.
+# Date/time of export: 02/21/2006 13:42:27
+#
+# Bounding box of geometry = (22.5464,0.27208,-3.00933) to (33.8796,8.61933,-0.0404358).
+
+newmtl default
+	Ns 32
+	d 1
+	illum 2
+	Kd 0.4 0.4 0.4
+	Ks 0.7 0.7 0.7
+	Ka 0.3 0.3 0.3
+
+newmtl teeth
+	Ns 3
+	d 1
+	illum 2
+	Kd 0.588235 0.588235 0.588235
+	Ks 0 0 0
+	Ka 0.588235 0.588235 0.588235
+	map_Kd teeth.tga
+	map_d teeth alpha.jpg
+
+newmtl wolf
+	Ns 3
+	d 1
+	illum 2
+	Kd 0.588235 0.588235 0.588235
+	Ks 0 0 0
+	Ka 0.588235 0.588235 0.588235
+	map_Kd wolf texture.tga
+
