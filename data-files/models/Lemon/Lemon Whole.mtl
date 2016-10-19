@@ -1,0 +1,18 @@
+# 3ds Max Wavefront OBJ Exporter v0.97b - (c)2007 guruware
+# File Created: 18.01.2012 13:26:04
+
+newmtl 02___Default
+	Ns 61.0000
+	Ni 1.5000
+	d 1.0000
+	Tr 0.0000
+	Tf 1.0000 1.0000 1.0000 
+	illum 2
+	Ka 0.9412 0.7882 0.0000
+	Kd 0.9412 0.7882 0.0000
+	Ks 0.8100 0.8100 0.6512
+	Ke 0.0471 0.0394 0.0000
+	map_Ka what-is-lemon-zest-2.png
+	map_Kd what-is-lemon-zest-2.png
+	map_refl Map__4_Dent.tga
+	map_bump what-is-lemon-zest-2.png
