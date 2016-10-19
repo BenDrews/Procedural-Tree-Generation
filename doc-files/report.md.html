@@ -15,36 +15,72 @@ Our program procedurally generates tree models that are made of cylinders connec
 
 Specification
 ==================================
-1. A user interface with the following controls:
-    1. Integer number box for the max recursion depth
-    2. Slider to use L-system generation or Space Colonization generation
-    3. Tree phenotype dropdown list
-    4. Generate button to start the generation 
+**Features of the program:**
 
-2. When the "Generate" button is pressed, the program:
+1. A user interface with the following tabs:
+    1. L-system tab
+        1. Recursion depth: Number of levels of recursion we will take our L-system through
+        2. Initial height of tree
+        3. Circle points: How round the cylinders that make up the tree will be
+        4. Branch sections: How many cylindric sections are added to each branch
+        5. Phenotype: What type of tree is generated
+        6. Generate button to run the program
+    2. Space colonization tab
+        1. Anchor count: Number of initial anchor points
+        2. Height: Total height of the tree
+        3. Radius: Radius of the area the anchor points will be generated in
+        4. Circle points: How round the cylinders that make up the tree will be
+        5. Distance between tree nodes
+        6. Kill distance for anchor nodes
+        7. Initial branch tip radius: Each branch radius is defined by the radii of its children, so we add a parameter to specify the radius of a branch with no children
+        8. Branch radius growth factor: Specific constant in definition of branch radius used by space colonization algorithm; higher constants lead to slower growth
+        9. Attraction radius: Radius within which anchor points can attract nodes
+        10. Leafiness
+        11. Generate button to run the program
+    3. Orchard tab
+        1. Number of rows in the orchard
+        2. Trees per row of orchard
+        3. Generation type: Whether we are using L-system or space colonization trees
+        4. Fruit type: Drop down list to choose which fruit the tree grows
+        5. Generate button to run the program
+
+2. In all tabs, when the "Generate" button is pressed, the program:
     1. Immediately displays a waiting screen
-    2. Generates the tree
-    3. Places it into the "tree testing" scene and loads that scene
+    2. Generates a tree/orchard with the specificed parameters
+    3. Saves the generated model/scene to a file and loads the scene
 
-3. Tree Generation
-    1. makeTree function that starts the generation
-    2. makeBranch function that adds a branch to the tree. Different functions can be made for different tree phenotypes.
-    3. Mesh class that stores all the vertices and faces. This class also handles the actual file generation.
-    4. makeCylindricSection function that adds a cylinder in a given coordinate frame to the Mesh.
-    5. makeLeaves function that adds leaves to a second mesh object.
+3. L-system tree generation entry points
+    1. method `App::makeLSkeleton()`: Generates a tree skeleton based on an L-system, with the parameters specified in the GUI
+    2. method `App::skeletonToMeshL`: Converts the generated tree skeleton to an OBJ mesh
 
-4. Output two OFF files, one for the tree branches, and one for the tree leaves.
+4. Space colonization tree generation entry points
+    1. method `App::makeSCSkeleton()`: Generates a tree skeleton based on the space colonization algorithm, with the parameters specified in the GUI
+    2. method `App::skeletonToMeshSC`: Converts the generated tree skeleton to an OBJ mesh
 
-Program Evaluation Metric:
+5. Orchard generation entry points
+    1. method `App::generateOrchard()`: Generates a Scene.Any file containing an orchard of fruit trees with the parameters specified in the GUI
+
+**Program evaluation metric:**
+
 - Graph the time it took to render a tree model versus the number of child branches with a set recursion depth of 7
+
 - Graph the time it took to render a tree model versus the recursion depth with three child branches at each recursion.
 
+- **TODO:: ADD EVALUATION METRIC FOR SPACE COLONIZATION MODEL**
+
+**Correctness images:**
 ![Wireframe of leafless tree to demonstrate proper branch generation](tree1.png)
 
-Three different tree phenotypes created with the same generation algorithm:
-![](tree2.jpg)
-![](tree3.jpg)
-![](tree4.jpg)
+![Three different tree phenotypes created with the same generation algorithm](specificationphenotypes.png)
+
+**Quality images:**
+![An orchard with trees growing fruits, and small differences between trees to show variations within a single phenotype.](design4.jpg)
+
+![A forest populated with different phenotypes of trees, to show variations between the trees our algorithm can generate.](specificationforest.png)
+
+**Evocative result:**
+
+![A fantasy scene of different planets being overgrown by different, arbitrarily large trees.](design5.jpg)
 
 
 Topic Overview 
@@ -63,6 +99,7 @@ In order to set up this generation, a set of simple recusive rules must be writt
 
 [Space Colonization](http://algorithmicbotany.org/papers/colonization.egwnp2007.pdf) is an algorithm that attempts to model the competition by branches for space on a tree in its generation. It does a better job than L-Systems at modeling mature trees, since as plant mature, the factors limiting their growth start to weigh more heavily on how branches are placed than the factors creating opportunites for growth.
 
+
 ![Tree generated with Space Colonization](SpaceColonizationTree.jpg)
 
 The algorithm works by randomly seeding a volume with anchor points, which pull on tree nodes, spawning adjacent tree nodes in the average direction of the anchor points pulling on that node. Once a tree node gets too close to an anchor node, than anchor is destroyed. This process repeats until all anchors are destroyed.
@@ -78,30 +115,45 @@ Design
 
 **TODO:: ADD HYPERLINK TO DOXYGEN DOCUMENTATION**
 
-**Major Functions of App**
+**Major functions of App**
  Function             | Description                                                
  ---------------------|------------------------------------------------------------
  makeTree             | Creates Meshes for the tree and the leaves of the tree, initializes the length of the “trunk” of the tree, and calls makeBranch
  makeBranch           | Recursively adds branches to a tree mesh, and calls addLeaves when recursionDepth is zero
  addCylindricSection  | Given a Mesh and an initial circle, adds an additional circle to the mesh underneath the initial circle and adds faces between the circles
  addLeaves            | Given a Mesh, adds a two-sided triangle to the Mesh
+ generateAnchorPoints | returns a randomly distributed set of points inside the volume specified by the `envelopePerimeter` parameter
+ findClosestAnchor    | returns an array of the closest anchor points to each tree node that is within the radius of attraction
+ findGrowthDirections | returns a map from the trees that have an anchor point within the radius of attraction to the average direction from that tree node to all anchors attracting it
 
-**Major Functions of Mesh**
+
+**Major functions of Mesh**
  Function             | Description                                                
  ---------------------|------------------------------------------------------------
  addVertex            | Adds a vertex to the Mesh
  addFace              | Adds a face (three indices of the vertices array) to the Mesh
  numVertices          | Returns the size of the vertices array
+ addMesh              | Adds a given Mesh to the end of the current Mesh
  toOFF                | Writes the Mesh to an OFF file
+ toOBJ                | Writes the Mesh to an OBJ file
+
+**Major functions of Face**
+ Function             | Description                                                
+ ---------------------|------------------------------------------------------------
+ increment            | Increments all of the points of the face by a given number
 
 
 Our program has four main functions: makeTree, makeBranch, addCylindricSection, and addLeaves. The makeTree function initializes the Meshes for the body of the tree and the leaves of the tree, and calls makeBranch to add cylinders to the Mesh. makeBranch is given a recursion depth that is decremented each time it is called. When the recursion depth is zero, it calls addLeaves to add leaves to the end of the current branch instead of constructing a new branch. addCylindricSection is a helper method for constructing cylinders that adds a circle underneath an initial circle. This design makes sense because we can see the initial parameters of the tree we are making by looking at the makeTree method call, and without having to see the details of how the tree is constructed in makeBranch. Also, this will allow us to have different makeBranch methods in order to generate trees of different phenotypes.
 
 To handle the logic of adding vertices and faces to a Mesh and writing the Mesh to a file in OFF format, we used Ben’s Mesh class from the Meshes lab. A `Vector` of `Point3`s is used to store the vertices and a `Vector` of `Poly`s, which are `SmallArray`s of three `int`s, is used to store the faces. This way, we do not have to write OFF files of generated trees directly in our App class, which would make things messy and bulky.
 
+**TODO:: WRITE DESCRIPTION OF FACE CLASS**
+
 
 Correctness Results
 ==================================
+demonstrating that the program is working as intended (or not), as dictated by your specification. These will probably be on very simple cases that can be hand-verified or are self-evidently correct. Explain why these are good and nearly-comprehensive tests. The results are frequently images in graphics projects, but may also be other forms of data.
+
 ![Wireframe of leafless tree](leafless.png)
 
 ![Same tree as above with leaves](leafful.png)
@@ -112,27 +164,22 @@ Correctness Results
 
 ![Tree #3 with L-system generation](gTree3.png)
 
+
 Quality Results
 ==================================
-**Polish Goals**
+![](branchesofacurvedtree.png)
+ explaining what it demonstrates about your program's correctness and features 
 
-For polish, we will map bark textures to our trees.
+![](orchard.png)
+ explaining what it demonstrates about your program's correctness and features 
 
-We also want the branches of our trees to be smoothly connected:
+![](forest.png)
+ explaining what it demonstrates about your program's correctness and features 
 
-![](curvegoals.jpg)
 
 Evocative Result
 ==================================
-For our custom scene, we would like to make an orchard with trees that grow different things. For example, we could have an apple tree, a money tree, a teapot tree, and a wine glass tree in our orchard. This will show the variation between same "species" of procedurally generated trees.
-
-![](design4.jpg)
-
-Additionally, we would like to make a forest of all types of different trees.
-
-Finally, we think it would be cool to make trees with roots that are mapped to the surface of a sphere, or planet, like in the Little Prince.
-
-![](design5.jpg)
+![](planets.png)
 
 
 Schedule
