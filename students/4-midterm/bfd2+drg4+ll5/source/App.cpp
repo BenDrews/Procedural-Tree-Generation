@@ -108,6 +108,8 @@ void App::makeGUI() {
     developerWindow->videoRecordDialog->setEnabled(true);
 
     debugPane->beginRow(); {
+
+
         GuiTabPane* containerPane = debugPane->addTabPane();
 	    
         // L-System tree generation GUI
@@ -121,7 +123,7 @@ void App::makeGUI() {
         treePane->addButton("Generate tree", [this](){
 	    	drawMessage("Generating tree...");
 	    	Array<Point3> fruitLocations = Array<Point3>();
-            makeTree(fruitLocations);
+            makeLTree(fruitLocations);
 	    	ArticulatedModel::clearCache();
 	    	GApp::loadScene("Tree Testing");
 	    });
@@ -142,8 +144,10 @@ void App::makeGUI() {
         spaceTreePane->addButton("Generate tree", [this](){
 	    	drawMessage("Generating tree...");
 
-            shared_ptr<Tree> skeleton = makeTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, m_spaceAttractionRadius, Point3(0,0,0));
-            skeletonToMesh(m_spaceCirclePoints, m_spaceBranchRadius, m_spaceRadiusGrowth, "tree", skeleton);
+
+        shared_ptr<Tree> skeleton = makeSCTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, m_spaceAttractionRadius, Point3(0,0,0));
+        skeletonToMesh(m_spaceCirclePoints, m_spaceBranchRadius, m_spaceRadiusGrowth, "tree", skeleton);
+
 
 	    	ArticulatedModel::clearCache();
 	    	GApp::loadScene("Tree Testing");
@@ -168,105 +172,120 @@ void App::makeGUI() {
         debugWindow->setRect(Rect2D::xywh(0, 0, (float)window()->width(), debugWindow->rect().height()));
 }
 
+shared_ptr<Tree> App::makeLTreeSkeleton(const CoordinateFrame& initial, std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, std::function<Vector3(float)> spineCurve, float length, int maxRecursionDepth, int currentRecursionDepth, shared_ptr<Tree> parent){
+    shared_ptr<Tree> tree = Tree::create(initial, parent);
+    Point3 branchEnd = initial.pointToWorldSpace(length * spineCurve(19.0f / 20.0f));
 
-void App::makeTree(Array<Point3>& fruitLocations) {
-    Mesh tree = Mesh("tree");
+    // callback function to decide how to recurse, populates an array of BranchDimensions which contain coordinate frames and lengths for the next branches
+    Array<BranchDimensions> nextBranches;
+    phenotype(nextBranches, length, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);
+
+    if(currentRecursionDepth > 0){
+        for (int i = 0; i < nextBranches.length(); ++i) {
+            BranchDimensions nextBranch = nextBranches[i];
+            CoordinateFrame branch = nextBranch.frame;
+            float newLength = nextBranch.length;
+            
+            shared_ptr<Tree> childTree = makeLTreeSkeleton(branch, phenotype, spineCurve, newLength, maxRecursionDepth, currentRecursionDepth - 1, tree);
+            if(notNull(childTree)){
+                tree->addChild(childTree);
+            }
+        }
+        return tree;
+    }else{
+        return nullptr;
+    }
+    
+}
+void App::makeLTree(Array<Point3>& fruitLocations) {
+    Mesh mesh = Mesh("tree");
     Mesh leafMesh = Mesh("leaf");
-
+     std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype;
 	if (m_phenotypesIndex == 0) {
-		makeBranch(tree, leafMesh, CoordinateFrame(), m_initialHeight, [this](float t) {return App::straight(t);}, [this](float t, int branchFactor, int depth) {return App::branchRadius(t, branchFactor, depth);},
-			[this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
-			{return App::normalTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
-			fruitLocations, m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
+		phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
+			{return App::normalTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
 	}
 	if (m_phenotypesIndex == 1) {
-		makeBranch(tree, leafMesh, CoordinateFrame(), m_initialHeight, [this](float t) {return App::straight(t);}, [this](float t, int branchFactor, int depth) {return App::branchRadius(t, branchFactor, depth);},
-			[this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
-			{return App::randomTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);},
-			fruitLocations, m_maxRecursionDepth, m_maxRecursionDepth, m_circlePts, m_branchSections);
+        phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
+			{return App::randomTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
 	}
-    
-    tree.addMesh(leafMesh);
-    tree.toOBJ();
+
+    shared_ptr<Tree> tree = makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return App::straight(t);},m_initialHeight, m_maxRecursionDepth, m_maxRecursionDepth);
+    buildTree(mesh, leafMesh, tree, [this](float t) {return App::straight(t);}, [this](float t, shared_ptr<Tree> tree) {return App::branchRadius(t, tree);},
+			fruitLocations,  m_circlePts, m_branchSections, m_initialHeight);
+
+
+    mesh.addMesh(leafMesh);
+    mesh.toOBJ();
 }
 
-
-void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial, float& length, std::function<Vector3(float)> spineCurve, std::function<float(float, int, int)> branchRadius,
-    std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype,
-	Array<Point3>& fruitLocations, int maxRecursionDepth, int currentRecursionDepth, int circlePoints, int branchSections) {
-    if (currentRecursionDepth != 0) {
-        int index = mesh.numVertices();
-	    //float sectionHeight;
-	    float sectionRadius;
-        float distanceAlongBranch = 0.0f; //Ranges from 0.0f to 1.0f
-        Point3 branchEnd = initial.pointToWorldSpace(length * spineCurve(19.0f / 20.0f));
-        Point3 branchMid = initial.pointToWorldSpace(length * spineCurve(6.0f / 10.0f));
-
-        // callback function to decide how to recurse, populates an array of BranchDimensions which contain coordinate frames and lengths for the next branches
-        Array<BranchDimensions> nextBranches;
-        phenotype(nextBranches, length, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);
-        debugAssert(nextBranches.size() > 0);
-
-        // Add vertices of intial circle at the bottom of the branch we are currently making to mesh
+void App::buildTree(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std::function<Vector3(float)> spineCurve, std::function<float(float, shared_ptr<Tree>)> branchRadius, Array<Point3>& fruitLocations, int circlePoints, int branchSections, float initialLength){
+    float distanceAlongBranch = 0.0f;
+    shared_ptr<Array<shared_ptr<Tree>>> children = tree->getChildren();
+    float sectionRadius;
+    CoordinateFrame initial = tree->getContents();
+    
+    // Add vertices of intial circle at the bottom of the branch we are currently making to mesh
 	    for(int i = 0; i < circlePoints; ++i) {
 	    	float angle = (i * 2.0f * pif()) / circlePoints;
-            sectionRadius = branchRadius(distanceAlongBranch, nextBranches.size(), currentRecursionDepth);
+            sectionRadius = branchRadius(distanceAlongBranch, tree);
             Vector3 vec = Vector3(cos(angle) * sectionRadius, 0.0f, sin(angle) * sectionRadius);
             vec = initial.pointToWorldSpace(vec);
 	    	mesh.addVertex(vec.x, vec.y, vec.z);  
 	    }
-	    
-        // Add vertices of circles on top of the initial circle to mesh
+
+         // Add vertices of circles on top of the initial circle to mesh
 	    for(int i = 1; i <= branchSections; ++i) {
             distanceAlongBranch =  (float)(i) / float(branchSections);
-	    	sectionRadius = branchRadius(distanceAlongBranch, nextBranches.size(), currentRecursionDepth);
+	    	sectionRadius = branchRadius(distanceAlongBranch, tree);
 	    	// TODO:: pass a coordinate frame that is returned by space curve function (instead of initial)
             CoordinateFrame section = initial;
-            section.translation = initial.pointToWorldSpace(length * spineCurve(distanceAlongBranch));
+            section.translation = initial.pointToWorldSpace(initialLength * spineCurve(distanceAlongBranch));
             addCylindricSection(mesh, circlePoints, section, sectionRadius);
 	    }
 
-        //Add the leaves
-        if (currentRecursionDepth == 1){
-			Random& rand = Random::threadCommon();
-            //Add one leaf on the end of the branch
-            CoordinateFrame leafFrame = initial;
-            leafFrame.translation = branchEnd;
-            float leafSize = 0.15f;
-            addLeaves(leafMesh, leafSize, leafFrame);
-			addFruits(fruitLocations, leafFrame);
-
+        if(children->size() == 0){
+            addLeaves(initial, initialLength, leafMesh, fruitLocations);
             
-            //Add random leaves along branch
-            int leafNumber = 5;
-            float rPitch;
-            float rYaw;
-            float rDisplacement;
-            for(int i = 0; i < 5; ++i){
-                leafFrame = initial;
-                rDisplacement = ( (float)rand.integer(0,100) / 100.0f ) * length;
-                rYaw = rand.integer(0, 360);
-                rPitch = rand.integer(0, 40) + 30.0f;  
-                leafFrame.translation = initial.pointToWorldSpace(Point3(0.0f, rDisplacement, 0.0f));
-                leafFrame = leafFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw);
-                leafFrame = leafFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch);
-                addLeaves(leafMesh, leafSize, leafFrame);
-            }
-        }
-        else {
-            for (int i = 0; i < nextBranches.length(); ++i) {
-                BranchDimensions nextBranch = nextBranches[i];
-                CoordinateFrame branch = nextBranch.frame;
-                float newLength = nextBranch.length;
+        }else{
+            float newLength = ((3.0f/5.0f)*initialLength);
                 
-                makeBranch(mesh, leafMesh, branch, newLength, spineCurve, branchRadius, phenotype, fruitLocations, maxRecursionDepth, currentRecursionDepth - 1, circlePoints, branchSections);   
+            for(int i = 0; i < children->size(); ++i){
+                buildTree(mesh, leafMesh, children->operator[](i), spineCurve, branchRadius, fruitLocations, circlePoints, branchSections, newLength);
             }
+        
         }
-    }
+
 }
 
+void App::addLeaves(CoordinateFrame& initial, float length, Mesh& leafMesh, Array<Point3>& fruitLocations){
+    Random& rand = Random::threadCommon();
+    //Add one leaf on the end of the branch
+    CoordinateFrame leafFrame = initial;
+    leafFrame.translation = initial.pointToWorldSpace(Point3(0.0f, (19.0f/20.0f)*length, 0.0f));
+    float leafSize = 0.15f;
+    addLeaf(leafMesh, leafSize, leafFrame);
+	addFruits(fruitLocations, leafFrame);
 
-void App::addLeaves(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFrame) const {
+    
+    //Add random leaves along branch
+    int leafNumber = 5;
+    float rPitch;
+    float rYaw;
+    float rDisplacement;
+    for(int i = 0; i < 5; ++i){
+        leafFrame = initial;
+        rDisplacement = ( (float)rand.integer(0,100) / 100.0f ) * length;
+        rYaw = rand.integer(0, 360);
+        rPitch = rand.integer(0, 40) + 30.0f;  
+        leafFrame.translation = initial.pointToWorldSpace(Point3(0.0f, rDisplacement, 0.0f));
+        leafFrame = leafFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw);
+        leafFrame = leafFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch);
+        addLeaf(leafMesh, leafSize, leafFrame);
+    }
+
+}
+void App::addLeaf(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFrame) const {
     int index = leafMesh.numVertices();
     //float leafSize = length*1.5f;
     Vector3 vec1 = Vector3(leafSize / 2.0f, leafSize, 0.0f);
@@ -326,6 +345,7 @@ void App::addCylindricSection(Mesh& mesh, const int& parentIndex, const int& cur
 	Callback functions for the curve of the tree
 */
 Vector3 App::straight(float t) {
+    // x:cost z:sint
     return Vector3(0.0f, t, 0.0f);
 }
 
@@ -337,17 +357,24 @@ Vector3 App::curvy(float t) {
 /**
 	Callback functions for the radii of the branches
 */
-float App::branchRadius(float t, int branchingNumber, int recursionDepth) {
-    if (recursionDepth == 0){
+float App::branchRadius(float t, shared_ptr<Tree> tree) {
+    shared_ptr<Array<shared_ptr<Tree>>> children = tree->getChildren();
+    //float end = branchRadius(0.0f, branchingNumber, recursionDepth - 1);
+    if(children->size() == 0){
         return 0.005f;
     }
-    float end = branchRadius(0.0f, branchingNumber, recursionDepth - 1);
-    float base = branchingNumber * (end*end);
-    base = sqrt(base);
-    float diff = base - end;
-    
-    end += diff/4.0f;
-    //base -= (diff/10.0f);
+    float squareSum = 0.0f;
+    float sum = 0.0f;
+
+    for(int i = 0; i < children->size(); ++i){
+        float childRadius = branchRadius(0.0f, children->operator[](i));
+        squareSum += pow(childRadius, 2);
+        sum += childRadius;
+        
+    }
+    float end = (sum/(float)(children->size()));
+    float base = sqrt(squareSum);
+
 
     debugAssert(t >= 0.0f && t <= 1.0f);
     //a, b, and c from the quadratic eq. ax^2 + bx + c = y
@@ -395,10 +422,10 @@ void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialL
 
     
     //These random values will determine how many child branches will be added (Fix realistic Radii with random child branches)
-    bool makeBranch1 = true;//(rand() % 100) > 30;
-    bool makeBranch2 = true;//(rand() % 100) > 30;
-    bool makeBranch3 = true;//(rand() % 100) > 30;
-    bool makeBranch4 = true;//(rand() % 100) > 30;
+    bool makeBranch1 = (rand() % 100) > 30;
+    bool makeBranch2 = (rand() % 100) > 30;
+    bool makeBranch3 = (rand() % 100) > 30;
+    bool makeBranch4 = (rand() % 100) > 30;
 
     if(makeBranch1){
         nextBranches.push(BranchDimensions(branch1, newBranchLength));
@@ -416,7 +443,7 @@ void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialL
 }
     
 
-shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, float attractionRadius, Point3 initTreeNode) {
+shared_ptr<Tree> App::makeSCTreeSkeleton(int anchorPointsCount, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, float attractionRadius, Point3 initTreeNode) {
 
     shared_ptr<Tree> result = Tree::create(initTreeNode, nullptr);
      //Points in space
@@ -451,8 +478,8 @@ shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<floa
 
             while(stack.size() > 0) {
                 shared_ptr<Tree> challenger = stack.pop();
-                float distanceToNode = (challenger->getContents() - currentAnchor).magnitude();
-                if(distanceToNode < attractionRadius && (isNull(closestNode) || distanceToNode < (closestNode->getContents() - currentAnchor).magnitude())) {
+                float distanceToNode = (challenger->getContents().translation - currentAnchor).magnitude();
+                if(distanceToNode < attractionRadius && (isNull(closestNode) || distanceToNode < (closestNode->getContents().translation - currentAnchor).magnitude())) {
                     closestNode = challenger;
                 }
                 children = challenger->getChildren();
@@ -471,9 +498,9 @@ shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<floa
         for(int i = 0; i < growingNodes.size(); ++i) {
             shared_ptr<Tree> tempNode = growingNodes[i];
             if(growthDirections.find(tempNode) == growthDirections.end()) {
-                growthDirections[tempNode] = (anchorPoints[i] - tempNode->getContents()).direction();
+                growthDirections[tempNode] = (anchorPoints[i] - tempNode->getContents().translation).direction();
             } else {
-                growthDirections[tempNode] = (growthDirections[tempNode] + (anchorPoints[i] - tempNode->getContents()).direction()).direction();
+                growthDirections[tempNode] = (growthDirections[tempNode] + (anchorPoints[i] - tempNode->getContents().translation).direction()).direction();
             }
         }
 
@@ -482,7 +509,7 @@ shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<floa
         for(auto it = growthDirections.begin(); it != growthDirections.end(); ++it) {
             shared_ptr<Tree> parent = it->first;
         
-            Point3 newPos = parent->getContents() + (nodeDistance * growthDirections[parent]);
+            Point3 newPos = parent->getContents().translation + (nodeDistance * growthDirections[parent]);
             debugPrintf("New tree node at: %f, %f, %f\n", newPos.x, newPos.y, newPos.z);
             shared_ptr<Tree> child = Tree::create(newPos, parent);
             shared_ptr<Array<shared_ptr<Tree>>> children = parent->getChildren();
@@ -506,7 +533,7 @@ shared_ptr<Tree> App::makeTreeSkeleton(int anchorPointsCount, std::function<floa
             Array<shared_ptr<Tree>> stack;
             stack.push(result); while(stack.size() > 0) {
                 shared_ptr<Tree> challenger = stack.pop();
-                if((challenger->getContents() - currentAnchor).magnitude() < killDistance * nodeDistance) {
+                if((challenger->getContents().translation - currentAnchor).magnitude() < killDistance * nodeDistance) {
                     if(anchorPoints.findIndex(currentAnchor) > -1) {
                         anchorPoints.remove(anchorPoints.findIndex(currentAnchor));
                     }
@@ -556,7 +583,7 @@ void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialL
 */
 void App::generateOrchard() {
 	Array<Point3> fruitLocations = Array<Point3>();
-	makeTree(fruitLocations);
+	makeLTree(fruitLocations);
 
 	FruitDimensions fDims = fruitDims[m_fruitsIndex];
 
@@ -704,9 +731,10 @@ void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth,
     stack.append(*skeleton->getChildren());
     while(stack.size() > 0) {
         shared_ptr<Tree> currentNode = stack.pop();
-        Point3 translation = currentNode->getContents();
+
+        Point3 translation = currentNode->getContents().translation;
         Vector3 x, y, z;
-        y = (currentNode->getParent()->getContents() - translation).direction();
+        y = (currentNode->getParent()->getContents().translation - translation).direction();
         y.getTangents(x,z);
         CoordinateFrame nextFrame = CoordinateFrame(Matrix3::fromColumns(x, y, z), translation);
         CoordinateFrame leafFrame = CoordinateFrame(Matrix3::fromColumns(-x, -y, -z), translation);
@@ -714,7 +742,8 @@ void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth,
         addCylindricSection(treeMesh, indexMap[currentNode->getParent()], indexMap[currentNode], circlePoints, nextFrame, radiusMap[currentNode]);
         if(currentNode->getChildren()->length() == 0) {
             float leafSize = 0.5f;
-            addLeaves(leafMesh, leafSize, leafFrame);
+            addLeaf(leafMesh, leafSize, nextFrame);
+
         }
         stack.append(*currentNode->getChildren());
     }
