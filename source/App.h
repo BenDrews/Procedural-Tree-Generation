@@ -13,32 +13,45 @@
 
 /** \brief Application framework. */
 class App : public GApp {
-protected:
-	int m_maxRecursionDepth = 4;
-	float m_initialHeight = 1.0f;
-	int m_circlePts = 3;
-	int m_branchSections = 1;
-	const Array<String> m_phenotypes = Array<String>("Normal", "Random", "Bush", "Pine");
-	int m_phenotypesIndex = 0;
+public:
+    class Options {//stores parameter options to provide flexible specification of parameters
+	public: 
+		
+    //L-system options
+    int maxRecursionDepthL = 4;
+	float initialHeightL = 1.0f;
+	int circlePtsL = 3;
+	int branchSectionsL = 1;
+	const Array<String> phenotypesL = Array<String>("Normal", "Random", "Bush", "Pine");
+	int phenotypesIndexL = 0;
 
-	int m_numRows = 2;
-	int m_numTrees = 3;
-	const Array<String> m_types = Array<String>("L-System", "Space Colonization");
-	int m_typesIndex = 0;
-	const Array<String> m_fruits = Array<String>("Apple", "Lemon", "Pear", "Banana", "Money", "Teapot");
-	int m_fruitsIndex = 0;
+    //Space colonization options
+    int anchorCountSC = 1000;
+    float heightSC = 20.0f;
+    float radiusSC = 10.0f;
+    int circlePointsSC = 10;
+    float treeDistanceSC = 0.6f;
+    float killDistanceSC = 2.0f;
+    float branchRadiusSC = 0.01f;
+    float radiusGrowthSC = 2.0f;
+    float attractionRadiusSC = 100.0f;
+    float leafinessSC = 10.0f;
+    float discountRateSC = 0.9f;
+
+    //Orchard options
+	int numRows = 2;
+	int numTrees = 3;
+	const Array<String> types = Array<String>("L-System", "Space Colonization");
+	int typesIndex = 0;
+	const Array<String> fruits = Array<String>("Apple", "Lemon", "Pear", "Banana", "Money", "Teapot");
+	int fruitsIndex = 0;
 	Array<FruitDimensions> fruitDims;
 
-    int m_spaceAnchorCount = 1000;
-    float m_spaceHeight = 20.0f;
-    float m_spaceRadius = 10.0f;
-    int m_spaceCirclePoints = 10;
-    float m_spaceTreeDistance = 0.6f;
-    float m_spaceKillDistance = 2.0f;
-    float m_spaceBranchRadius = 0.01f;
-    float m_spaceRadiusGrowth = 2.0f;
-    float m_spaceAttractionRadius = 100.0f;
-        
+    
+    };
+
+protected:
+    Options m_options = Options();
 
     /** Called from onInit */
     void makeGUI();
@@ -60,7 +73,8 @@ protected:
     
     shared_ptr<Tree> makeSCTreeSkeleton(int anchorPoints, std::function<float(float)> envelopePerimeter, float height, float radius, float killDistance, float nodeDistance, float attractionRadius, Point3 initTreeNode);
     void generateAnchorPoints(Array<Point3>& anchorPoints, int count, float height, float radius, std::function<float(float)> radiusCurve);
-    void skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, String filename, shared_ptr<Tree>& skeleton, Array<Point3>& fruitLocations);
+
+    void skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, float leafiness, String filename, shared_ptr<Tree>& skeleton, Array<Point3>& fruitLocations);
     void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     void App::bushTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);

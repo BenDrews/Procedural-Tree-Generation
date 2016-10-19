@@ -16,6 +16,9 @@
     <ClCompile Include="source\FruitDimensions.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\SCGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\App.h">
@@ -28,6 +31,10 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="source\FruitDimensions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\Tree.h" />
+    <ClInclude Include="source\SCGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
