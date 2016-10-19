@@ -89,12 +89,17 @@ void App::onInit() {
 	//FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", 0.01f, 0.05f);
 	//FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", 0.001f, 0.08f);
 	
-	FruitDimensions appleDims = FruitDimensions("apple textured obj.obj", m_initialHeight / 1000.0f, 0.08f);
-	FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", m_initialHeight / 100.0f, 0.05f);
-	FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", m_initialHeight / 1000.0f, 0.08f);
-
+	FruitDimensions appleDims = FruitDimensions("apple textured obj.obj", m_initialHeight / 1000.0f, 0.08f, 0.0f);
+	FruitDimensions lemonDims = FruitDimensions("lemon whole.obj", m_initialHeight / 1000.0f, 0.04f, 0.0f);
+	FruitDimensions pearDims = FruitDimensions("pear_export.obj", m_initialHeight / 50.0f, 0.04f, 0.0f);
+	FruitDimensions bananaDims = FruitDimensions("banana.obj", m_initialHeight / 2000.0f, 0.04f, -90.0f);
+	FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", m_initialHeight / 100.0f, 0.05f, 90.0f);
+	FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", m_initialHeight / 1000.0f, 0.08f, 0.0f);
 
 	fruitDims.push(appleDims);
+	fruitDims.push(lemonDims);
+	fruitDims.push(pearDims);
+	fruitDims.push(bananaDims);
 	fruitDims.push(moneyDims);
 	fruitDims.push(teapotDims);
 }
@@ -132,15 +137,15 @@ void App::makeGUI() {
         // Space tree generation GUI
         GuiPane* spaceTreePane = containerPane->addTab("Space Col Tree");
         spaceTreePane->setNewChildSize(500, -1, 300);
-	    spaceTreePane->addNumberBox("Anchor Points:", &m_spaceAnchorCount, "", GuiTheme::LOG_SLIDER, 1, 10000);
+	    spaceTreePane->addNumberBox("Anchor points:", &m_spaceAnchorCount, "", GuiTheme::LOG_SLIDER, 1, 10000);
 	    spaceTreePane->addNumberBox("Height:", &m_spaceHeight, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
 	    spaceTreePane->addNumberBox("Radius:", &m_spaceRadius, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
-	    spaceTreePane->addNumberBox("Circle Points:", &m_spaceCirclePoints, "", GuiTheme::LOG_SLIDER, 1, 100);
-	    spaceTreePane->addNumberBox("Tree Node Distance:", &m_spaceTreeDistance, "", GuiTheme::LOG_SLIDER, 0.01f, 1.0f);
-	    spaceTreePane->addNumberBox("Kill Distance:", &m_spaceKillDistance, "", GuiTheme::LINEAR_SLIDER, 1.0f, 10.0f);
-	    spaceTreePane->addNumberBox("Branch Initial Radius:", &m_spaceBranchRadius, "", GuiTheme::LOG_SLIDER, 0.01f, 10.0f);
-	    spaceTreePane->addNumberBox("Radius Growth:", &m_spaceRadiusGrowth, "", GuiTheme::LINEAR_SLIDER, 2.0f, 3.0f);
-	    spaceTreePane->addNumberBox("Attraction Radius:", &m_spaceAttractionRadius, "", GuiTheme::LOG_SLIDER, 1.0f, 100.0f);
+	    spaceTreePane->addNumberBox("Circle points:", &m_spaceCirclePoints, "", GuiTheme::LOG_SLIDER, 1, 100);
+	    spaceTreePane->addNumberBox("Tree node distance:", &m_spaceTreeDistance, "", GuiTheme::LOG_SLIDER, 0.01f, 1.0f);
+	    spaceTreePane->addNumberBox("Kill distance:", &m_spaceKillDistance, "", GuiTheme::LINEAR_SLIDER, 1.0f, 10.0f);
+	    spaceTreePane->addNumberBox("Branch initial radius:", &m_spaceBranchRadius, "", GuiTheme::LOG_SLIDER, 0.01f, 10.0f);
+	    spaceTreePane->addNumberBox("Radius growth:", &m_spaceRadiusGrowth, "", GuiTheme::LINEAR_SLIDER, 2.0f, 3.0f);
+	    spaceTreePane->addNumberBox("Attraction radius:", &m_spaceAttractionRadius, "", GuiTheme::LOG_SLIDER, 1.0f, 100.0f);
         spaceTreePane->addButton("Generate tree", [this](){
 	    	drawMessage("Generating tree...");
 
@@ -260,13 +265,13 @@ void App::buildTree(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std
 
 void App::addLeaves(CoordinateFrame& initial, float length, Mesh& leafMesh, Array<Point3>& fruitLocations){
     Random& rand = Random::threadCommon();
+
     //Add one leaf on the end of the branch
     CoordinateFrame leafFrame = initial;
     leafFrame.translation = initial.pointToWorldSpace(Point3(0.0f, (19.0f/20.0f)*length, 0.0f));
     float leafSize = 0.15f;
     addLeaf(leafMesh, leafSize, leafFrame);
 	addFruits(fruitLocations, leafFrame);
-
     
     //Add random leaves along branch
     int leafNumber = 5;
@@ -285,6 +290,8 @@ void App::addLeaves(CoordinateFrame& initial, float length, Mesh& leafMesh, Arra
     }
 
 }
+
+
 void App::addLeaf(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFrame) const {
     int index = leafMesh.numVertices();
     Vector3 vec1 = Vector3(leafSize / 2.0f, leafSize, 0.0f);
@@ -301,8 +308,8 @@ void App::addLeaf(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFr
 }
 
 
-void App::addFruits(Array<Point3>& fruitLocations, const CoordinateFrame& fruitFrame) {
-	fruitLocations.push( fruitFrame.pointToWorldSpace(Vector3(0.0f, 0.0f, 0.0f)) );
+void App::addFruits(Array<Point3>& fruitLocations, const CoordinateFrame& frame) {
+	fruitLocations.push( frame.pointToWorldSpace(Vector3(0.0f, 0.0f, 0.0f)) );
 }
 
 
@@ -426,16 +433,16 @@ void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialL
     bool makeBranch3 = (rand() % 100) > 30;
     bool makeBranch4 = (rand() % 100) > 30;
 
-    if(makeBranch1){
+    if (makeBranch1) {
         nextBranches.push(BranchDimensions(branch1, newBranchLength));
     }
-    if(makeBranch2){
+    if (makeBranch2) { 
         nextBranches.push(BranchDimensions(branch2, newBranchLength));
     }
-    if(makeBranch3){
+    if (makeBranch3) {
         nextBranches.push(BranchDimensions(branch3, newBranchLength));
     }
-    if(makeBranch4){
+    if (makeBranch4) {
         nextBranches.push(BranchDimensions(branch4, newBranchLength));
     }
     debugAssert(nextBranches.size() > 0);
@@ -638,16 +645,16 @@ void App::generateOrchard() {
 	writer.printf("frame = CFrame::fromXYZYPRDegrees(0, 1, 4); };");
 
     for (int i = 0; i < m_numRows; ++i) {
-		float xOffset = m_maxRecursionDepth * i + rand.uniform();
+		float xOffset = m_maxRecursionDepth * i;
 		
 		for (int j = 0; j < m_numTrees; ++j) {
 			int zVar = rand.integer(0, 10);
-			float zOffset = m_maxRecursionDepth * j + rand.uniform();
+			float zOffset = m_maxRecursionDepth * j;
 
 			writer.writeNewlines(2);
 			writer.printf("tree%d%d = VisibleEntity { model = \"treeModel\";", i, j);
 			writer.writeNewline();
-			writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, 0, %f); };", xOffset, zOffset);
+			writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, 0, %f, %d, 0, 0); };", xOffset, zOffset, rand.integer(0,360));
 			writer.writeNewlines(2);
 
 			CoordinateFrame frame = CoordinateFrame(Point3(xOffset, 0.0f, zOffset));
@@ -658,7 +665,7 @@ void App::generateOrchard() {
 					Point3 location = frame.pointToWorldSpace(fruitLocations[k]);
 					writer.printf("fruit%d%d%d = VisibleEntity { model = \"fruitModel\";", i, j, k);
 					writer.writeNewline();
-					writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, %f, %f, %d, %d, %d); };", location.x, location.y - fDims.yOffset, location.z, rand.integer(0,360), rand.integer(-20,20), 0);
+					writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, %f, %f, %d, %d, %f); };", location.x, location.y, location.z, rand.integer(0,360), 0, fDims.roll);
 					writer.writeNewline();
 				}
 			}
@@ -675,11 +682,11 @@ void App::generateOrchard() {
 
 void App::generateAnchorPoints(Array<Point3>& anchorPoints, int count, float height, float radius, std::function<float(float)> radiusCurve) {
     Random& rng = Random::threadCommon();
-    for(int i = 0; i < count; ++i) {
+    for (int i = 0; i < count; ++i) {
         Point3 newPoint;
         do {
             newPoint = Point3((2.0f * rng.uniform()) - 1.0f, (2.0f * rng.uniform()) - 1.0f, (2.0f * rng.uniform()) - 1.0f);
-        } while(newPoint.xz().length() >= radiusCurve(newPoint.y));
+        } while (newPoint.xz().length() >= radiusCurve(newPoint.y));
         anchorPoints.push(Point3(newPoint.x * radius, newPoint.y * height, newPoint.z * radius));
     }
 }
@@ -700,7 +707,6 @@ void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth,
     while(stack.size() > 0) {
         shared_ptr<Tree> currentNode = stack.pop();
         Array<shared_ptr<Tree>> children = *currentNode->getChildren();
-
 
         indexMap[currentNode] = curIndex;
         curIndex += circlePoints;

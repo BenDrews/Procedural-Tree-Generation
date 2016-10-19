@@ -25,7 +25,7 @@ protected:
 	int m_numTrees = 3;
 	const Array<String> m_types = Array<String>("L-System", "Space Colonization");
 	int m_typesIndex = 0;
-	const Array<String> m_fruits = Array<String>("Apple", "Money", "Teapot");
+	const Array<String> m_fruits = Array<String>("Apple", "Lemon", "Pear", "Banana", "Money", "Teapot");
 	int m_fruitsIndex = 0;
 	Array<FruitDimensions> fruitDims;
 
