@@ -19,6 +19,9 @@
     <ClCompile Include="source\SCGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\LGenerator.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="source\App.h">
@@ -35,6 +38,9 @@
     </ClInclude>
     <ClInclude Include="source\Tree.h" />
     <ClInclude Include="source\SCGenerator.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="source\LGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
