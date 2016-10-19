@@ -90,6 +90,7 @@
     <ClInclude Include="source\BranchDimensions.h" />
     <ClInclude Include="source\FruitDimensions.h" />
     <ClInclude Include="source\Mesh.h" />
+    <ClInclude Include="source\SCGenerator.h" />
     <ClInclude Include="source\Tree.h" />
   </ItemGroup>
   <ItemGroup>
@@ -97,6 +98,7 @@
     <ClCompile Include="source\BranchDimensions.cpp" />
     <ClCompile Include="source\FruitDimensions.cpp" />
     <ClCompile Include="source\Mesh.cpp" />
+    <ClCompile Include="source\SCGenerator.cpp" />
     <ClCompile Include="source\Tree.cpp" />
   </ItemGroup>
   <ItemGroup>

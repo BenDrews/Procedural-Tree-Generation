@@ -8,6 +8,7 @@
 #include <map>
 #include <tuple>
 #include <stdlib.h> 
+#include "SCGenerator.h"
 
 // Tells C++ to invoke command-line main() function even on OS X and Win32.
 G3D_START_AT_MAIN();
@@ -57,7 +58,6 @@ int main(int argc, const char* argv[]) {
 App::App(const GApp::Settings& settings) : GApp(settings) {
 }
 
-
 // Called before the application loop begins.  Load data here and
 // not in the constructor so that common exceptions will be
 // automatically caught.
@@ -84,24 +84,24 @@ void App::onInit() {
 
 
 	// initialize fruitDims
-	fruitDims = Array<FruitDimensions>();
+	m_options.fruitDims = Array<FruitDimensions>();
 	//FruitDimensions appleDims = FruitDimensions("apple textured obj.obj", 0.001f, 0.08f);
 	//FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", 0.01f, 0.05f);
 	//FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", 0.001f, 0.08f);
 	
-	FruitDimensions appleDims = FruitDimensions("apple textured obj.obj", m_initialHeight / 1000.0f, 0.08f, 0.0f);
-	FruitDimensions lemonDims = FruitDimensions("lemon whole.obj", m_initialHeight / 1000.0f, 0.04f, 0.0f);
-	FruitDimensions pearDims = FruitDimensions("pear_export.obj", m_initialHeight / 50.0f, 0.04f, 0.0f);
-	FruitDimensions bananaDims = FruitDimensions("banana.obj", m_initialHeight / 2000.0f, 0.04f, -90.0f);
-	FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", m_initialHeight / 100.0f, 0.05f, 90.0f);
-	FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", m_initialHeight / 1000.0f, 0.08f, 0.0f);
+	FruitDimensions appleDims = FruitDimensions("apple textured obj.obj", m_options.initialHeightL / 1000.0f, 0.08f, 0.0f);
+	FruitDimensions lemonDims = FruitDimensions("lemon whole.obj", m_options.initialHeightL / 1000.0f, 0.04f, 0.0f);
+	FruitDimensions pearDims = FruitDimensions("pear_export.obj", m_options.initialHeightL / 50.0f, 0.04f, 0.0f);
+	FruitDimensions bananaDims = FruitDimensions("banana.obj", m_options.initialHeightL / 2000.0f, 0.04f, -90.0f);
+	FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", m_options.initialHeightL / 100.0f, 0.05f, 90.0f);
+	FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", m_options.initialHeightL / 1000.0f, 0.08f, 0.0f);
 
-	fruitDims.push(appleDims);
-	fruitDims.push(lemonDims);
-	fruitDims.push(pearDims);
-	fruitDims.push(bananaDims);
-	fruitDims.push(moneyDims);
-	fruitDims.push(teapotDims);
+	m_options.fruitDims.push(appleDims);
+	m_options.fruitDims.push(lemonDims);
+	m_options.fruitDims.push(pearDims);
+	m_options.fruitDims.push(bananaDims);
+	m_options.fruitDims.push(moneyDims);
+	m_options.fruitDims.push(teapotDims);
 }
 
 
@@ -120,11 +120,11 @@ void App::makeGUI() {
         // L-System tree generation GUI
         GuiPane* treePane = containerPane->addTab("L-System Tree");
         treePane->setNewChildSize(500, -1, 300);
-	    treePane->addNumberBox("Recursion depth:", &m_maxRecursionDepth, "", GuiTheme::LINEAR_SLIDER, 2, 10);
-	    treePane->addNumberBox("Initial height:", &m_initialHeight, "", GuiTheme::LOG_SLIDER, 0.5f, 10.0f);
-	    treePane->addNumberBox("Circle points:", &m_circlePts, "", GuiTheme::LOG_SLIDER, 3, 100);
-	    treePane->addNumberBox("Branch sections:", &m_branchSections, "", GuiTheme::LOG_SLIDER, 1, 100);
-        treePane->addDropDownList("Phenotype", m_phenotypes, &m_phenotypesIndex);
+	    treePane->addNumberBox("Recursion depth:", &m_options.maxRecursionDepthL, "", GuiTheme::LINEAR_SLIDER, 2, 10);
+	    treePane->addNumberBox("Initial height:", &m_options.initialHeightL, "", GuiTheme::LOG_SLIDER, 0.5f, 10.0f);
+	    treePane->addNumberBox("Circle points:", &m_options.circlePtsL, "", GuiTheme::LOG_SLIDER, 3, 100);
+	    treePane->addNumberBox("Branch sections:", &m_options.branchSectionsL, "", GuiTheme::LOG_SLIDER, 1, 100);
+        treePane->addDropDownList("Phenotype", m_options.phenotypesL, &m_options.phenotypesIndexL);
         treePane->addButton("Generate tree", [this](){
 	    	drawMessage("Generating tree...");
 	    	Array<Point3> fruitLocations = Array<Point3>();
@@ -137,21 +137,25 @@ void App::makeGUI() {
         // Space tree generation GUI
         GuiPane* spaceTreePane = containerPane->addTab("Space Col Tree");
         spaceTreePane->setNewChildSize(500, -1, 300);
-	    spaceTreePane->addNumberBox("Anchor points:", &m_spaceAnchorCount, "", GuiTheme::LOG_SLIDER, 1, 10000);
-	    spaceTreePane->addNumberBox("Height:", &m_spaceHeight, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
-	    spaceTreePane->addNumberBox("Radius:", &m_spaceRadius, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
-	    spaceTreePane->addNumberBox("Circle points:", &m_spaceCirclePoints, "", GuiTheme::LOG_SLIDER, 1, 100);
-	    spaceTreePane->addNumberBox("Tree node distance:", &m_spaceTreeDistance, "", GuiTheme::LOG_SLIDER, 0.01f, 1.0f);
-	    spaceTreePane->addNumberBox("Kill distance:", &m_spaceKillDistance, "", GuiTheme::LINEAR_SLIDER, 1.0f, 10.0f);
-	    spaceTreePane->addNumberBox("Branch initial radius:", &m_spaceBranchRadius, "", GuiTheme::LOG_SLIDER, 0.01f, 10.0f);
-	    spaceTreePane->addNumberBox("Radius growth:", &m_spaceRadiusGrowth, "", GuiTheme::LINEAR_SLIDER, 2.0f, 3.0f);
-	    spaceTreePane->addNumberBox("Attraction radius:", &m_spaceAttractionRadius, "", GuiTheme::LOG_SLIDER, 1.0f, 100.0f);
+	    spaceTreePane->addNumberBox("Anchor points:", &m_options.anchorCountSC, "", GuiTheme::LOG_SLIDER, 1, 10000);
+	    spaceTreePane->addNumberBox("Height:", &m_options.heightSC, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
+	    spaceTreePane->addNumberBox("Radius:", &m_options.radiusSC, "", GuiTheme::LINEAR_SLIDER, 10.0f, 100.0f);
+	    spaceTreePane->addNumberBox("Circle points:", &m_options.circlePointsSC, "", GuiTheme::LOG_SLIDER, 1, 100);
+	    spaceTreePane->addNumberBox("Tree node distance:", &m_options.treeDistanceSC, "", GuiTheme::LOG_SLIDER, 0.01f, 1.0f);
+	    spaceTreePane->addNumberBox("Kill distance:", &m_options.killDistanceSC, "", GuiTheme::LINEAR_SLIDER, 1.0f, 10.0f);
+	    spaceTreePane->addNumberBox("Branch initial radius:", &m_options.branchRadiusSC, "", GuiTheme::LOG_SLIDER, 0.01f, 10.0f);
+	    spaceTreePane->addNumberBox("Radius growth:", &m_options.radiusGrowthSC, "", GuiTheme::LINEAR_SLIDER, 2.0f, 3.0f);
+	    spaceTreePane->addNumberBox("Attraction radius:", &m_options.attractionRadiusSC, "", GuiTheme::LOG_SLIDER, 1.0f, 100.0f);
+	    spaceTreePane->addNumberBox("Leafiness:", &m_options.leafinessSC, "", GuiTheme::LOG_SLIDER, 1.0f, 100.0f);
+	    spaceTreePane->addNumberBox("Discount Rate:", &m_options.discountRateSC, "", GuiTheme::LINEAR_SLIDER, 0.0f, 1.0f);
         spaceTreePane->addButton("Generate tree", [this](){
 	    	drawMessage("Generating tree...");
+            
+            Array<Point3> fruitLocations;
+            SCGenerator genSC;
+            shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return App::envelopePerimeter(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
+            genSC.skeletonToMeshSC(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "tree", skeleton, fruitLocations);
 
-			shared_ptr<Tree> skeleton = makeSCTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, m_spaceAttractionRadius, Point3(0,0,0));
-			Array<Point3> fruitLocations;
-			skeletonToMesh(m_spaceCirclePoints, m_spaceBranchRadius, m_spaceRadiusGrowth, "tree", skeleton, fruitLocations);
 
 	    	ArticulatedModel::clearCache();
 	    	GApp::loadScene("Tree Testing");
@@ -159,10 +163,10 @@ void App::makeGUI() {
 	    spaceTreePane->pack();
 
 		GuiPane* orchardPane = containerPane->addTab("Orchard");
-		orchardPane->addNumberBox("Number of rows:", &m_numRows, "", GuiTheme::LOG_SLIDER, 3, 20);
-	    orchardPane->addNumberBox("Trees per row:", &m_numTrees, "", GuiTheme::LOG_SLIDER, 1, 20);
-		orchardPane->addDropDownList("Generation type", m_types, &m_typesIndex);
-        orchardPane->addDropDownList("Fruit type", m_fruits, &m_fruitsIndex);
+		orchardPane->addNumberBox("Number of rows:", &m_options.numRows, "", GuiTheme::LOG_SLIDER, 3, 20);
+	    orchardPane->addNumberBox("Trees per row:", &m_options.numTrees, "", GuiTheme::LOG_SLIDER, 1, 20);
+		orchardPane->addDropDownList("Generation type", m_options.types, &m_options.typesIndex);
+        orchardPane->addDropDownList("Fruit type", m_options.fruits, &m_options.fruitsIndex);
 		orchardPane->addButton("Generate orchard", [this]() {
 	    	drawMessage("Generating orchard...");
 	    	generateOrchard();
@@ -206,23 +210,24 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
     Mesh mesh = Mesh(filename);
     Mesh leafMesh = Mesh("leaf");
      std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype;
-	if (m_phenotypesIndex == 0) {
+	if (m_options.phenotypesIndexL == 0) {
 		phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::normalTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
-	}else if (m_phenotypesIndex == 1) {
+	}else if (m_options.phenotypesIndexL == 1) {
         phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::randomTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
-	}else if (m_phenotypesIndex == 2) {
+	}else if (m_options.phenotypesIndexL == 2) {
         phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::bushTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
-	}else if (m_phenotypesIndex == 3) {
+	}else if (m_options.phenotypesIndexL == 3) {
         phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::pineTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
+
 	}
 
-    shared_ptr<Tree> tree = makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return App::straight(t);},m_initialHeight, m_maxRecursionDepth, m_maxRecursionDepth);
+    shared_ptr<Tree> tree = makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return App::straight(t);},m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
     buildTree(mesh, leafMesh, tree, [this](float t) {return App::straight(t);}, [this](float t, shared_ptr<Tree> tree) {return App::branchRadius(t, tree);},
-			fruitLocations,  m_circlePts, m_branchSections, m_initialHeight);
+			fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL);
 
 
     mesh.addMesh(leafMesh);
@@ -791,15 +796,15 @@ void App::pineTree(Array<BranchDimensions>& nextBranches, const float initialLen
 void App::generateOrchard() {
 	Array<Point3> fruitLocations = Array<Point3>();
 
-	if (m_typesIndex == 0) {
+	if (m_options.typesIndex == 0) {
 		makeLTree("firstTree", fruitLocations);
 	}
 	else {
-		shared_ptr<Tree> skeleton = makeSCTreeSkeleton(m_spaceAnchorCount, [this](float y) {return App::envelopePerimeter(y);}, m_spaceHeight, m_spaceRadius, m_spaceKillDistance, m_spaceTreeDistance, m_spaceAttractionRadius, Point3(0,0,0));
-		skeletonToMesh(m_spaceCirclePoints, m_spaceBranchRadius, m_spaceRadiusGrowth, "firstTree", skeleton, fruitLocations);
+		shared_ptr<Tree> skeleton = makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return App::envelopePerimeter(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, Point3(0,0,0));
+		skeletonToMesh(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "firstTree", skeleton, fruitLocations);
 	}
 
-	FruitDimensions fDims = fruitDims[m_fruitsIndex];
+	FruitDimensions fDims = m_options.fruitDims[m_options.fruitsIndex];
 
     TextOutput writer = TextOutput("scene/orchard.Scene.Any");
 	Random& rand = Random::threadCommon();
@@ -820,7 +825,7 @@ void App::generateOrchard() {
 
 	writer.printf("fruitModel = ArticulatedModel::Specification {");
 	writer.writeNewline();
-	writer.printf("filename = \"models/" + m_fruits[m_fruitsIndex] + "/" + fDims.filename + "\";");
+	writer.printf("filename = \"models/" + m_options.fruits[m_options.fruitsIndex] + "/" + fDims.filename + "\";");
 	writer.writeNewline();
 	writer.printf("preprocess = { transformGeometry(all(), Matrix4::scale(%f) ); } };", fDims.scale );
 	writer.writeNewline();
@@ -844,12 +849,12 @@ void App::generateOrchard() {
     writer.writeNewline();
 	writer.printf("frame = CFrame::fromXYZYPRDegrees(0, 1, 4); };");
 
-    for (int i = 0; i < m_numRows; ++i) {
-		float xOffset = m_maxRecursionDepth * i;
+    for (int i = 0; i < m_options.numRows; ++i) {
+		float xOffset = m_options.maxRecursionDepthL * i;
 		
-		for (int j = 0; j < m_numTrees; ++j) {
+		for (int j = 0; j < m_options.numTrees; ++j) {
 			int zVar = rand.integer(0, 10);
-			float zOffset = m_maxRecursionDepth * j;
+			float zOffset = m_options.maxRecursionDepthL * j;
 
 			writer.writeNewlines(2);
 			writer.printf("tree%d%d = VisibleEntity { model = \"treeModel\";", i, j);
@@ -891,7 +896,8 @@ void App::generateAnchorPoints(Array<Point3>& anchorPoints, int count, float hei
     }
 }
 
-void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, String filename, shared_ptr<Tree>& skeleton, Array<Point3>& fruitLocations) {
+void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, float leafiness, String filename, shared_ptr<Tree>& skeleton, Array<Point3>& fruitLocations) {
+
     Mesh treeMesh = Mesh(filename);
     Mesh leafMesh = Mesh("leaf");
 
@@ -909,7 +915,11 @@ void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth,
         Array<shared_ptr<Tree>> children = *currentNode->getChildren();
 
         indexMap[currentNode] = curIndex;
+        if(children.length() > 1) {
+            curIndex += circlePoints * children.length();   
+        } 
         curIndex += circlePoints;
+        
 
         bottomUpIter.append(children);
 
@@ -950,15 +960,38 @@ void App::skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth,
         y = (currentNode->getParent()->getContents().translation - translation).direction();
         y.getTangents(x,z);
         CoordinateFrame nextFrame = CoordinateFrame(Matrix3::fromColumns(x, y, z), translation);
-        CoordinateFrame leafFrame = CoordinateFrame(Matrix3::fromColumns(-x, -y, -z), translation);
 
-        addCylindricSection(treeMesh, indexMap[currentNode->getParent()], indexMap[currentNode], circlePoints, nextFrame, radiusMap[currentNode]);
-        if(currentNode->getChildren()->length() == 0) {
+        
+
+        if(currentNode->getParent()->numChildren() > 1) {
+            addCylindricSection(treeMesh, indexMap[currentNode->getParent()] + (circlePoints * (1 + currentNode->getParent()->getChildren()->findIndex(currentNode))), indexMap[currentNode], circlePoints, nextFrame, radiusMap[currentNode]);    
+        } else {
+            addCylindricSection(treeMesh, indexMap[currentNode->getParent()], indexMap[currentNode], circlePoints, nextFrame, radiusMap[currentNode]);
+        }
+
+        if(currentNode->numChildren() > 1) {
+              
+              for(int i = 0; i < currentNode->numChildren(); ++i) {
+                shared_ptr<Tree> childNode = currentNode->getChildren()->operator[](i);
+                Vector3 childX, childY, childZ;
+                childY = (translation - childNode->getContents().translation).direction();
+                childY.getTangents(childX, childZ);
+                CoordinateFrame branchStartFrame = CoordinateFrame(Matrix3::fromColumns(childX, childY, childZ), translation);
+                addCylindricSection(treeMesh, indexMap[currentNode], indexMap[currentNode] + circlePoints * (1 + i), circlePoints, branchStartFrame, radiusMap[currentNode]);
+                
+              }
+        }
+
+        
+        if(radiusMap[currentNode] < leafiness * initRadius) {
             float leafSize = 0.5f;
-            addLeaf(leafMesh, leafSize, nextFrame);
+            Random& rng = Random::threadCommon();
+            CoordinateFrame leafFrame = CoordinateFrame(Matrix3::fromColumns(-x, -y, -z), translation);
+            addLeaf(leafMesh, leafSize, leafFrame * CoordinateFrame::fromXYZYPRDegrees(0,0,0, rng.uniform(0.0f, 360.0f), rng.uniform(0.0f, 360.0f), rng.uniform(45.0f, 135.0f)));
 
 			addFruits(fruitLocations, leafFrame);
         }
+
         stack.append(*currentNode->getChildren());
     }
 
