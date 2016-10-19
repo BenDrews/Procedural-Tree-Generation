@@ -1,0 +1,25 @@
+#
+# Wavefront material file: d:\backup\gotovi modeli\animals\deer\deer-obj.mtl
+#
+# Converted by the PolyTrans geometry converter from Okino Computer Graphics, Inc.
+# Date/time of export: 02/20/2006 19:03:30
+#
+# Bounding box of geometry = (-13.6236,-0.943975,-2.07663) to (9.99805,27.0297,6.05823).
+
+newmtl default
+	Ns 32
+	d 1
+	illum 2
+	Kd 0.4 0.4 0.4
+	Ks 0.7 0.7 0.7
+	Ka 0.3 0.3 0.3
+
+newmtl deer
+	Ns 4
+	d 1
+	illum 2
+	Kd 0.588235 0.588235 0.588235
+	Ks 0.135 0.135 0.135
+	Ka 0.588235 0.588235 0.588235
+	map_Kd deer texture.tga
+

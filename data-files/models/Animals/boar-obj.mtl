@@ -1,0 +1,33 @@
+#
+# Wavefront material file: c:\documents and settings\admir\desktop\nove zivotinje\boar\boar-obj.mtl
+#
+# Converted by the PolyTrans geometry converter from Okino Computer Graphics, Inc.
+# Date/time of export: 02/21/2006 13:45:15
+#
+# Bounding box of geometry = (-5.67713,-4.16589,1.0381) to (11.1606,6.68207,6.44255).
+
+newmtl default
+	Ns 32
+	d 1
+	illum 2
+	Kd 0.4 0.4 0.4
+	Ks 0.7 0.7 0.7
+	Ka 0.3 0.3 0.3
+
+newmtl Plane01
+	Ns 32
+	d 1
+	illum 2
+	Kd 0.181961 0.181961 0.181961
+	Ks 0.318431 0.318431 0.318431
+	Ka 0.136471 0.136471 0.136471
+
+newmtl boar
+	Ns 3
+	d 1
+	illum 2
+	Kd 0.588235 0.588235 0.588235
+	Ks 0 0 0
+	Ka 0.588235 0.588235 0.588235
+	map_Kd boar.tga
+
