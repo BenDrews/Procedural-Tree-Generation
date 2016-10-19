@@ -179,7 +179,7 @@ void App::makeGUI() {
 
 shared_ptr<Tree> App::makeLTreeSkeleton(const CoordinateFrame& initial, std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, std::function<Vector3(float)> spineCurve, float length, int maxRecursionDepth, int currentRecursionDepth, shared_ptr<Tree> parent){
     shared_ptr<Tree> tree = Tree::create(initial, parent);
-    Point3 branchEnd = initial.pointToWorldSpace(length * spineCurve(19.0f / 20.0f));
+    Point3 branchEnd = initial.pointToWorldSpace(length * spineCurve(19.0f/20.0f));
 
     // callback function to decide how to recurse, populates an array of BranchDimensions which contain coordinate frames and lengths for the next branches
     Array<BranchDimensions> nextBranches;
@@ -209,10 +209,15 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
 	if (m_phenotypesIndex == 0) {
 		phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::normalTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
-	}
-	if (m_phenotypesIndex == 1) {
+	}else if (m_phenotypesIndex == 1) {
         phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return App::randomTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
+	}else if (m_phenotypesIndex == 2) {
+        phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
+			{return App::bushTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
+	}else if (m_phenotypesIndex == 3) {
+        phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
+			{return App::pineTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
 	}
 
     shared_ptr<Tree> tree = makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return App::straight(t);},m_initialHeight, m_maxRecursionDepth, m_maxRecursionDepth);
@@ -228,7 +233,14 @@ void App::buildTree(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std
     float distanceAlongBranch = 0.0f;
     shared_ptr<Array<shared_ptr<Tree>>> children = tree->getChildren();
     float sectionRadius;
+    float length = initialLength;
     CoordinateFrame initial = tree->getContents();
+
+
+    if(children->size() != 0){
+       length = (initial.translation - children->operator[](0)->getContents().translation).magnitude();
+    }
+
     
     // Add vertices of intial circle at the bottom of the branch we are currently making to mesh
 	    for(int i = 0; i < circlePoints; ++i) {
@@ -245,15 +257,15 @@ void App::buildTree(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std
 	    	sectionRadius = branchRadius(distanceAlongBranch, tree);
 	    	// TODO:: pass a coordinate frame that is returned by space curve function (instead of initial)
             CoordinateFrame section = initial;
-            section.translation = initial.pointToWorldSpace(initialLength * spineCurve(distanceAlongBranch));
+            section.translation = initial.pointToWorldSpace(length * spineCurve(distanceAlongBranch));
             addCylindricSection(mesh, circlePoints, section, sectionRadius);
 	    }
 
         if(children->size() == 0){
-            addLeaves(initial, initialLength, leafMesh, fruitLocations);
+            addLeaves(initial, length, leafMesh, fruitLocations);
             
         }else{
-            float newLength = ((3.0f/5.0f)*initialLength);
+            float newLength = ((3.0f/5.0f)*length);
                 
             for(int i = 0; i < children->size(); ++i){
                 buildTree(mesh, leafMesh, children->operator[](i), spineCurve, branchRadius, fruitLocations, circlePoints, branchSections, newLength);
@@ -370,15 +382,18 @@ float App::branchRadius(float t, shared_ptr<Tree> tree) {
         return 0.005f;
     }
     float squareSum = 0.0f;
-    float sum = 0.0f;
 
+    float largestRadius = 0.0f;
     for(int i = 0; i < children->size(); ++i){
         float childRadius = branchRadius(0.0f, children->operator[](i));
         squareSum += pow(childRadius, 2);
-        sum += childRadius;
+        
+        if(largestRadius <= childRadius){
+            largestRadius = childRadius;
+        }
         
     }
-    float end = (sum/(float)(children->size()));
+    float end = largestRadius;
     float base = sqrt(squareSum);
 
 
@@ -582,6 +597,191 @@ void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialL
     nextBranches.push(BranchDimensions(branch3, newBranchLength));
     nextBranches.push(BranchDimensions(branch4, newBranchLength));
  
+    debugAssert(nextBranches.size() > 0);
+}
+
+void App::bushTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
+
+    float trunkLength = 4.0f/5.0f * initialLength;
+    float newBranchLength = 3.0f * initialLength / 5.0f;
+
+    float levelPitch = 60.0f*((float)(currentRecursionDepth) / (float)(maxRecursionDepth));
+    float pitch = rand()%20 + levelPitch;
+
+    float yaw = rand()%20 - 10;
+
+    CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch1 = branch1 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, pitch, 0.0f);
+    branch1.translation = branchEnd;
+
+    yaw = rand()%20 - 10;
+    pitch = rand()%20 + levelPitch;
+
+    CoordinateFrame branch2 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch2 = branch2 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -pitch, 0.0f);
+    branch2.translation = branchEnd;
+
+    yaw = rand()%20 + 80;
+    pitch = rand()%20 + levelPitch;
+
+    CoordinateFrame branch3 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, pitch, 0.0f);
+    branch3.translation = branchEnd;
+    
+    yaw = rand()%20 + 80;
+    pitch = rand()%20 + levelPitch;
+
+    CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch4 = branch4 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -pitch, 0.0f);
+    branch4.translation = branchEnd;
+    
+    CoordinateFrame branch5 = initialFrame;
+    branch5.translation = branchEnd;
+
+    //These random values will determine how many child branches will be added (Fix realistic Radii with random child branches)
+    bool makeBranch1 = (rand() % 100) > 20;
+    bool makeBranch2 = (rand() % 100) > 20;
+    bool makeBranch3 = (rand() % 100) > 20;
+    bool makeBranch4 = (rand() % 100) > 20;
+
+    if(makeBranch1){
+        nextBranches.push(BranchDimensions(branch1, newBranchLength));
+    }
+    if(makeBranch2){
+        nextBranches.push(BranchDimensions(branch2, newBranchLength));
+    }
+    if(makeBranch3){
+        nextBranches.push(BranchDimensions(branch3, newBranchLength));
+    }
+    if(makeBranch4){
+        nextBranches.push(BranchDimensions(branch4, newBranchLength));
+    }
+    nextBranches.push(BranchDimensions(branch5, trunkLength));
+
+    debugAssert(nextBranches.size() > 0);
+}
+
+void App::pineTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth) {  
+
+    float trunkLength = 4.0f/5.0f * initialLength;
+    float newBranchLength = 2.0f * initialLength / 5.0f;
+
+    float levelPitch = 100 + 60.0f*((float)(maxRecursionDepth - currentRecursionDepth) / (float)(maxRecursionDepth));
+
+    float pitch = rand()%20 + levelPitch;
+    float yaw = rand()%20 - 10;
+    Point3 randomPos = initialFrame.pointToWorldSpace(Point3(0.0f,(((float)(rand()%10) / 10.0f)*initialLength),0.0f));
+
+    CoordinateFrame branch1 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch1 = branch1 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, pitch, 0.0f);
+    branch1.translation = randomPos;
+
+    yaw = rand()%20 - 10;
+    pitch = rand()%20 + levelPitch;
+    randomPos = initialFrame.pointToWorldSpace(Point3(0.0f,(((float)(rand()%10) / 10.0f)*initialLength),0.0f));
+
+    CoordinateFrame branch2 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch2 = branch2 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -pitch, 0.0f);
+    branch2.translation = randomPos;
+
+    yaw = rand()%20 + 80;
+    pitch = rand()%20 + levelPitch;
+    randomPos = initialFrame.pointToWorldSpace(Point3(0.0f,(((float)(rand()%10) / 10.0f)*initialLength),0.0f));
+
+    CoordinateFrame branch3 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch3 = branch3 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, pitch, 0.0f);
+    branch3.translation = randomPos;
+    
+    yaw = rand()%20 + 80;
+    pitch = rand()%20 + levelPitch;
+    randomPos = initialFrame.pointToWorldSpace(Point3(0.0f,(((float)(rand()%10) / 10.0f)*initialLength),0.0f));
+
+    CoordinateFrame branch4 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch4 = branch4 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -pitch, 0.0f);
+    branch4.translation = randomPos;
+
+    yaw = rand()%20 + 45;
+    pitch = rand()%20 + levelPitch;
+    randomPos = initialFrame.pointToWorldSpace(Point3(0.0f,(((float)(rand()%10) / 10.0f)*initialLength),0.0f));
+
+    CoordinateFrame branch5 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch5 = branch5 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, pitch, 0.0f);
+    branch5.translation = randomPos;
+    
+    yaw = rand()%20 + 45;
+    pitch = rand()%20 + levelPitch;
+    randomPos = initialFrame.pointToWorldSpace(Point3(0.0f,(((float)(rand()%10) / 10.0f)*initialLength),0.0f));
+
+    CoordinateFrame branch6 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch5 = branch5 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -pitch, 0.0f);
+    branch5.translation = randomPos;
+
+    yaw = rand()%20 + 135;
+    pitch = rand()%20 + levelPitch;
+    randomPos = initialFrame.pointToWorldSpace(Point3(0.0f,(((float)(rand()%10) / 10.0f)*initialLength),0.0f));
+
+    CoordinateFrame branch7 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch7 = branch7 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, pitch, 0.0f);
+    branch7.translation = randomPos;
+    
+    yaw = rand()%20 + 135;
+    pitch = rand()%20 + levelPitch;
+    randomPos = initialFrame.pointToWorldSpace(Point3(0.0f,(((float)(rand()%10) / 10.0f)*initialLength),0.0f));
+
+    CoordinateFrame branch8 = initialFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, yaw, 0.0f, 0.0f);
+    branch8 = branch8 * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, -pitch, 0.0f);
+    branch8.translation = randomPos;
+    
+    CoordinateFrame trunk = initialFrame;
+    trunk.translation = branchEnd;
+
+    //These random values will determine how many child branches will be added (Fix realistic Radii with random child branches)
+    bool makeBranch1 = true;//(rand() % 100) > 20;
+    bool makeBranch2 = true;//(rand() % 100) > 20;
+    bool makeBranch3 = true;//(rand() % 100) > 20;
+    bool makeBranch4 = true;//(rand() % 100) > 20;
+    bool makeBranch5 = true;//(rand() % 100) > 20;
+    bool makeBranch6 = true;//(rand() % 100) > 20;
+    bool makeBranch7 = true;//(rand() % 100) > 20;
+    bool makeBranch8 = true;//(rand() % 100) > 20;
+
+    //if(currentRecursionDepth == maxRecursionDepth){
+    //    makeBranch1 = false;
+    //    makeBranch2 = false;
+    //    makeBranch3 = false;
+    //    makeBranch4 = false;
+    //    makeBranch5 = false;
+    //    makeBranch6 = false;
+    //    makeBranch7 = false;
+    //    makeBranch8 = false;
+    //}
+
+    nextBranches.push(BranchDimensions(trunk, trunkLength));
+
+    if(makeBranch1){
+        nextBranches.push(BranchDimensions(branch1, newBranchLength));
+    }
+    if(makeBranch2){
+        nextBranches.push(BranchDimensions(branch2, newBranchLength));
+    }
+    if(makeBranch3){
+        nextBranches.push(BranchDimensions(branch3, newBranchLength));
+    }
+    if(makeBranch4){
+        nextBranches.push(BranchDimensions(branch4, newBranchLength));
+    }
+    if(makeBranch5){
+        nextBranches.push(BranchDimensions(branch5, newBranchLength));
+    }
+    if(makeBranch6){
+        nextBranches.push(BranchDimensions(branch6, newBranchLength));
+    }
+    if(makeBranch7){
+        nextBranches.push(BranchDimensions(branch7, newBranchLength));
+    }
+    if(makeBranch8){
+        nextBranches.push(BranchDimensions(branch8, newBranchLength));
+    }
     debugAssert(nextBranches.size() > 0);
 }
 

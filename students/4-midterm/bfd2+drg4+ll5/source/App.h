@@ -18,7 +18,7 @@ protected:
 	float m_initialHeight = 1.0f;
 	int m_circlePts = 3;
 	int m_branchSections = 1;
-	const Array<String> m_phenotypes = Array<String>("Normal", "Random");
+	const Array<String> m_phenotypes = Array<String>("Normal", "Random", "Bush", "Pine");
 	int m_phenotypesIndex = 0;
 
 	int m_numRows = 2;
@@ -63,7 +63,8 @@ protected:
     void skeletonToMesh(int circlePoints, float initRadius, float radiusGrowth, String filename, shared_ptr<Tree>& skeleton, Array<Point3>& fruitLocations);
     void App::randomTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
     void App::normalTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
-    
+    void App::bushTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
+    void App::pineTree(Array<BranchDimensions>& nextBranches, const float initialLength, const CoordinateFrame& initialFrame, const Point3& branchEnd, const int maxRecursionDepth, const int currentRecursionDepth);
 	void App::generateOrchard();
     void addCylindricSection(Mesh& mesh, const int& parentIndex, const int& currentIndex, const int& pts, const CoordinateFrame& origin, const float& radius) const;
 
