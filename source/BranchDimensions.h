@@ -1,6 +1,5 @@
 #pragma once
 #include <G3D/G3DAll.h>
-#include <vector>
 /**
   \file BranchDimensions.h
 
@@ -8,12 +7,9 @@
  */
 
 class BranchDimensions {
-	protected:
 	public:
         CoordinateFrame frame;
         float length;
         BranchDimensions();
         BranchDimensions(CoordinateFrame frame, float length);
-        //CoordinateFrame frame();
-        //float length();
 };

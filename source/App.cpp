@@ -3,6 +3,7 @@
 #include "Mesh.h"
 #include "BranchDimensions.h"
 #include "Tree.h"
+#include "FruitDimensions.h"
 #include <cmath>
 #include <map>
 #include <tuple>
@@ -80,6 +81,22 @@ void App::onInit() {
         "Tree Testing" // Load something simple
         //developerWindow->sceneEditorWindow->selectedSceneName()  // Load the first scene encountered 
         );
+
+
+	// initialize fruitDims
+	fruitDims = Array<FruitDimensions>();
+	//FruitDimensions appleDims = FruitDimensions("apple textured obj.obj", 0.001f, 0.08f);
+	//FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", 0.01f, 0.05f);
+	//FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", 0.001f, 0.08f);
+	
+	FruitDimensions appleDims = FruitDimensions("apple textured obj.obj", m_initialHeight / 1000.0f, 0.08f);
+	FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", m_initialHeight / 100.0f, 0.05f);
+	FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", m_initialHeight / 1000.0f, 0.08f);
+
+
+	fruitDims.push(appleDims);
+	fruitDims.push(moneyDims);
+	fruitDims.push(teapotDims);
 }
 
 
@@ -91,10 +108,9 @@ void App::makeGUI() {
     developerWindow->videoRecordDialog->setEnabled(true);
 
     debugPane->beginRow(); {
-
         GuiTabPane* containerPane = debugPane->addTabPane();
 	    
-        // L-System Tree generation GUI
+        // L-System tree generation GUI
         GuiPane* treePane = containerPane->addTab("L-System Tree");
         treePane->setNewChildSize(500, -1, 300);
 	    treePane->addNumberBox("Recursion depth:", &m_maxRecursionDepth, "", GuiTheme::LINEAR_SLIDER, 2, 10);
@@ -109,13 +125,7 @@ void App::makeGUI() {
 	    	ArticulatedModel::clearCache();
 	    	GApp::loadScene("Tree Testing");
 	    });
-	    treePane->addButton("Generate orchard", [this]() {
-	    	drawMessage("Generating orchard...");
-	    	generateOrchard();
-	    	ArticulatedModel::clearCache();
-	    	GApp::loadScene("Orchard");
-	    });
-	    treePane->pack();
+		treePane->pack();
 
         // Space tree generation GUI
         GuiPane* spaceTreePane = containerPane->addTab("Space Col Tree");
@@ -139,6 +149,19 @@ void App::makeGUI() {
 	    	GApp::loadScene("Tree Testing");
 	    });
 	    spaceTreePane->pack();
+
+		GuiPane* orchardPane = containerPane->addTab("Orchard");
+		orchardPane->addNumberBox("Number of rows:", &m_numRows, "", GuiTheme::LOG_SLIDER, 3, 20);
+	    orchardPane->addNumberBox("Trees per row:", &m_numTrees, "", GuiTheme::LOG_SLIDER, 1, 20);
+        orchardPane->addDropDownList("Fruit type", m_fruits, &m_fruitsIndex);
+		orchardPane->addButton("Generate orchard", [this]() {
+	    	drawMessage("Generating orchard...");
+	    	generateOrchard();
+	    	ArticulatedModel::clearCache();
+	    	GApp::loadScene("Orchard");
+	    });
+	    orchardPane->pack();
+
         }
         debugPane->endRow();
         debugWindow->pack();
@@ -175,7 +198,7 @@ void App::makeBranch(Mesh& mesh, Mesh& leafMesh, const CoordinateFrame& initial,
         int index = mesh.numVertices();
 	    //float sectionHeight;
 	    float sectionRadius;
-        float distanceAlongBranch = 1.0f; //Ranges from 0.0f to 1.0f
+        float distanceAlongBranch = 0.0f; //Ranges from 0.0f to 1.0f
         Point3 branchEnd = initial.pointToWorldSpace(length * spineCurve(19.0f / 20.0f));
         Point3 branchMid = initial.pointToWorldSpace(length * spineCurve(6.0f / 10.0f));
 
@@ -535,9 +558,10 @@ void App::generateOrchard() {
 	Array<Point3> fruitLocations = Array<Point3>();
 	makeTree(fruitLocations);
 
+	FruitDimensions fDims = fruitDims[m_fruitsIndex];
+
     TextOutput writer = TextOutput("scene/orchard.Scene.Any");
-
-
+	Random& rand = Random::threadCommon();
 
     writer.printf("{");
     writer.writeNewline();
@@ -555,10 +579,9 @@ void App::generateOrchard() {
 
 	writer.printf("fruitModel = ArticulatedModel::Specification {");
 	writer.writeNewline();
-	//writer.printf("filename = \"" + fruitModel + ".OBJ\"; };");
-	writer.printf("filename = \"Dollar.obj\";");
+	writer.printf("filename = \"models/" + m_fruits[m_fruitsIndex] + "/" + fDims.filename + "\";");
 	writer.writeNewline();
-	writer.printf("preprocess = { transformGeometry(all(), Matrix4::scale(0.01, 0.01, 0.01) ); } };");
+	writer.printf("preprocess = { transformGeometry(all(), Matrix4::scale(%f) ); } };", fDims.scale );
 	writer.writeNewline();
 
     writer.printf("};");
@@ -580,11 +603,12 @@ void App::generateOrchard() {
     writer.writeNewline();
 	writer.printf("frame = CFrame::fromXYZYPRDegrees(0, 1, 4); };");
 
-    for (int i = 0; i < 1; ++i) {
-		float xOffset = 3.0 * i;
+    for (int i = 0; i < m_numRows; ++i) {
+		float xOffset = m_maxRecursionDepth * i + rand.uniform();
 		
-		for (int j = 0; j < 3; ++j) {
-			float zOffset = 2.0 * j;
+		for (int j = 0; j < m_numTrees; ++j) {
+			int zVar = rand.integer(0, 10);
+			float zOffset = m_maxRecursionDepth * j + rand.uniform();
 
 			writer.writeNewlines(2);
 			writer.printf("tree%d%d = VisibleEntity { model = \"treeModel\";", i, j);
@@ -595,13 +619,12 @@ void App::generateOrchard() {
 			CoordinateFrame frame = CoordinateFrame(Point3(xOffset, 0.0f, zOffset));
 
 			for (int k = 0; k < fruitLocations.length(); ++k) {
-				Random& rand = Random::threadCommon();
 				int placeFruit = rand.integer(-2, 1);
 				if (placeFruit == 1) {
 					Point3 location = frame.pointToWorldSpace(fruitLocations[k]);
 					writer.printf("fruit%d%d%d = VisibleEntity { model = \"fruitModel\";", i, j, k);
 					writer.writeNewline();
-					writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, %f, %f, 0, 0, %f); };", location.x, location.y - 0.08, location.z, 90.0f);
+					writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, %f, %f, %d, %d, %d); };", location.x, location.y - fDims.yOffset, location.z, rand.integer(0,360), rand.integer(-20,20), 0);
 					writer.writeNewline();
 				}
 			}

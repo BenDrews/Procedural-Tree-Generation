@@ -1,5 +1,3 @@
-
-
 /**
   \file App.h
 
@@ -11,7 +9,7 @@
 #include "Mesh.h"
 #include "Tree.h"
 #include "BranchDimensions.h"
-//#include "Tree.h"
+#include "FruitDimensions.h"
 
 /** \brief Application framework. */
 class App : public GApp {
@@ -22,6 +20,12 @@ protected:
 	int m_branchSections = 1;
 	const Array<String> m_phenotypes = Array<String>("Normal", "Random");
 	int m_phenotypesIndex = 0;
+
+	int m_numRows = 2;
+	int m_numTrees = 3;
+	const Array<String> m_fruits = Array<String>("Apple", "Money", "Teapot");
+	int m_fruitsIndex = 0;
+	Array<FruitDimensions> fruitDims;
 
     int m_spaceAnchorCount = 1000;
     float m_spaceHeight = 20.0f;
