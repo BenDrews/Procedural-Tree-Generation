@@ -26,7 +26,7 @@ shared_ptr<Tree> LGenerator::makeLTreeSkeleton(const CoordinateFrame& initial, s
             float newLength = nextBranch.length;
             
             shared_ptr<Tree> childTree = makeLTreeSkeleton(branch, phenotype, spineCurve, newLength, maxRecursionDepth, currentRecursionDepth - 1, tree);
-            if(notNull(childTree)){
+            if (notNull(childTree)) {
                 tree->addChild(childTree);
             }
         }
@@ -45,13 +45,13 @@ void LGenerator::skeletonToMeshL(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tr
     CoordinateFrame initial = tree->getContents();
 
 
-    if(children->size() != 0){
+    if (children->size() != 0) {
        length = (initial.translation - children->operator[](0)->getContents().translation).magnitude();
     }
 
     
     // Add vertices of intial circle at the bottom of the branch we are currently making to mesh
-	for(int i = 0; i < circlePoints; ++i) {
+	for (int i = 0; i < circlePoints; ++i) {
 		float angle = (i * 2.0f * pif()) / circlePoints;
         sectionRadius = branchRadius(distanceAlongBranch, tree);
         Vector3 vec = Vector3(cos(angle) * sectionRadius, 0.0f, sin(angle) * sectionRadius);
@@ -60,7 +60,7 @@ void LGenerator::skeletonToMeshL(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tr
 	}
 
      // Add vertices of circles on top of the initial circle to mesh
-	for(int i = 1; i <= branchSections; ++i) {
+	for (int i = 1; i <= branchSections; ++i) {
         distanceAlongBranch =  (float)(i) / float(branchSections);
 		sectionRadius = branchRadius(distanceAlongBranch, tree);
 		// TODO:: pass a coordinate frame that is returned by space curve function (instead of initial)
@@ -69,10 +69,9 @@ void LGenerator::skeletonToMeshL(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tr
         addCylindricSection(mesh, circlePoints, section, sectionRadius, bark);
 	}
 
-    if(children->size() == 0){
+    if (children->size() == 0) {
         addLeaves(initial, length, leafMesh, fruitLocations, fall);
-        
-    }else{
+    } else {
         float newLength = ((3.0f/5.0f)*length);
             
         for(int i = 0; i < children->size(); ++i){
