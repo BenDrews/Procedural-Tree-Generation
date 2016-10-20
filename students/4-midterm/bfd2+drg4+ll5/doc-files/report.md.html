@@ -83,7 +83,7 @@ Topic Overview
 ==================================
 **Tree Generation using L-Systems**
 
-[L-Systems](https://en.wikipedia.org/wiki/L-system) provide an easy way to generate plantlike structures. Nature often encorporates fractal patterns in how plants grow and branch, which translates easily into recursive method calls which mirror such growth on a mesh.
+L-systems provide an easy way to generate plantlike structures. Nature often encorporates fractal patterns in how plants grow and branch, which translates easily into recursive method calls which mirror such growth on a mesh (1).
 
 ![Fractals in Nature](plantFractal.png)
 
@@ -93,8 +93,7 @@ In order to set up this generation, a set of simple recusive rules must be writt
 
 **Tree Generation using Space Colonization**
 
-[Space Colonization](http://algorithmicbotany.org/papers/colonization.egwnp2007.pdf) is an algorithm that attempts to model the competition by branches for space on a tree in its generation. It does a better job than L-Systems at modeling mature trees, since as plant mature, the factors limiting their growth start to weigh more heavily on how branches are placed than the factors creating opportunites for growth.
-
+Space Colonization is an algorithm that attempts to model the competition by branches for space on a tree in its generation. It does a better job than L-Systems at modeling mature trees, since as plant mature, the factors limiting their growth start to weigh more heavily on how branches are placed than the factors creating opportunites for growth (2).
 
 ![Tree generated with Space Colonization](SpaceColonizationTree.jpg)
 
@@ -102,6 +101,12 @@ The algorithm works by randomly seeding a volume with anchor points, which pull 
 
 ![Space Colonization Iteration](SpaceColIter.jpg)
 
+
+**Works Cited**
+
+1. “L-system,” *Wikipedia*, accessed 19 Oct 2016. https://en.wikipedia.org/wiki/L-system
+
+2. Adam Runions, Brendan Lane, and Przemyslaw Prusinkiewicz, “Modeling Trees with a Space Colonization Algorithm,” Eurographics Workshop on Natural Phenomena (2007). http://algorithmicbotany.org/papers/colonization.egwnp2007.pdf
 
 Design
 ==================================
