@@ -14,7 +14,7 @@
 #include <tuple>
 #include <stdlib.h>
 
-/** \brief Application framework. */
+/** \brief Logic to generate trees using an L-System */
 class LGenerator {
 protected:   
     

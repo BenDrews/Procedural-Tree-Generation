@@ -59,6 +59,8 @@ protected:
     void initializeFruitDims();
 
     void makeLTree(String filename, Array<Point3>& fruitLocations);
+    void makeSCTree();
+
     void generateOrchard();
 	void customOrchard();
     void App::generateForest();
