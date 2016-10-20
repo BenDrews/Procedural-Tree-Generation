@@ -89,21 +89,21 @@ Topic Overview
 
 L-systems provide an easy way to generate plantlike structures. Nature often encorporates fractal patterns in how plants grow and branch, which translates easily into recursive method calls which mirror such growth on a mesh (1).
 
-![Fractals in Nature](plantFractal.png)
+![Fractals in Nature](plantFractal.png width=800)
 
 In order to set up this generation, a set of simple recusive rules must be written. These generally replace or grow a set of smaller branches off of a parent branch, and can be applied repeatedly to get increasingly detailed results.
 
-![Products of L-Systems](L-SystemProducts.jpg)
+![Products of L-Systems](L-SystemProducts.jpg width=800)
 
 **Tree Generation using Space Colonization**
 
 Space Colonization is an algorithm that attempts to model the competition by branches for space on a tree in its generation. It does a better job than L-Systems at modeling mature trees, since as plant mature, the factors limiting their growth start to weigh more heavily on how branches are placed than the factors creating opportunites for growth (2).
 
-![Tree generated with Space Colonization](SpaceColonizationTree.jpg)
+![Tree generated with Space Colonization](SpaceColonizationTree.jpg width=800)
 
 The algorithm works by randomly seeding a volume with anchor points, which pull on tree nodes, spawning adjacent tree nodes in the average direction of the anchor points pulling on that node. Once a tree node gets too close to an anchor node, than anchor is destroyed. This process repeats until all anchors are destroyed.
 
-![Space Colonization Iteration](SpaceColIter.jpg)
+![Space Colonization Iteration](SpaceColIter.jpg width=400)
 
 
 **Works Cited**
@@ -173,16 +173,28 @@ To avoid having a lengthy App class, we abstracted our tree generation into two 
 
 The LGenerator has two main functions for tree generation, `makeLTreeSkeleton` and skeletonToMeshL. `makeLTreeSkeleton` creates a Tree with nodes determined by the phenotype and spine curve callback functions we pass to it. This function is recursive, calling `phenotype` for each branch. `phenotype` will return an array of child branches that determine the L-system structure. `skeletonToMeshL` takes a Tree skeleton and creates a Mesh for it, which can then be written to an OBJ or OFF file.
 
+<<<<<<< .mine
+The SCGenerator class holds all of the logic for generating a tree with the space colonization algorithm. It has two main methods, `makeSCTreeSkeleton` which generates the set of points that will form the skeleton of the tree, and `skeletonToMeshSC` which adds the vertices and faces that correspond to the given skeleton. The goal of the space colonization algorithm is to model the structure of a mature tree through the competition of branches for space. This is accomplished by generating a set of anchor points that pull on nearby tree nodes, and deleting anchors when they get too close to the tree. The process is divied up into the following methods: `generateAnchors`, `findClosestNode`, `growTreeNodes`, and `killAnchors`. To add a greater density of small twigs and branches in our trees, we give the option of continuously adding new anchor points at each iteration, which uses the `intermediateAnchors` method.
+
+To handle the logic of adding vertices and faces to a Mesh and writing the Mesh to a file in OFF format, we used Ben’s Mesh class from the Meshes lab. A `Vector` of `Point3`s is used to store the vertices and a `Vector` of `SmallArray`s of three `int`s, is used to store the faces. We also added a Face class to Mesh, which stores all the information we need to know about the faces of a mesh, including its points as well as its texture points. By having these classes, we do not have to write OFF or OBJ files of generated trees directly in our App class, which would make things messy and bulky.
+||||||| .r1911
+To handle the logic of adding vertices and faces to a Mesh and writing the Mesh to a file in OFF format, we used Ben’s Mesh class from the Meshes lab. A `Vector` of `Point3`s is used to store the vertices and a `Vector` of `SmallArray`s of three `int`s, is used to store the faces. We also added a Face class to Mesh, which stores all the information we need to know about the faces of a mesh, including its points as well as its texture points. By having these classes, we do not have to write OFF or OBJ files of generated trees directly in our App class, which would make things messy and bulky.
+=======
 **TODO:: SPACE COL PARAGRAPH**
+>>>>>>> .r1931
 
 To handle the logic of adding vertices and faces to a Mesh and writing the Mesh to a file, we used Ben’s Mesh class from the Meshes lab. A `Vector` of `Point3`s is used to store the vertices and a `Vector` of `SmallArray`s of three `int`s, is used to store the faces. We also added a Face class to Mesh, which stores all the information we need to know about the faces of a mesh, including its points as well as its texture points. By having these classes, we do not have to write OFF or OBJ files of generated trees directly in our App class, which would make things messy and bulky.
 
 
 Correctness Results
 ==================================
-demonstrating that the program is working as intended (or not), as dictated by your specification. These will probably be on very simple cases that can be hand-verified or are self-evidently correct. Explain why these are good and nearly-comprehensive tests. The results are frequently images in graphics projects, but may also be other forms of data.
+These images showcase the ability of our algorithms to generate a wide variety of trees, realistic and otherwise, controllable through the various parameters provided. These images of trees with wireframe shown demonstrate proper branch generation:
 
-![Wireframe of leafless tree to demonstrate proper branch generation](tree1.png)
+![Wireframe of leafless L-system tree](LTreeWireframe.jpg width=400) 
+
+![Wireframe of leafless SC-system tree](SCTreeWireframe.jpg width=400)
+
+For the L-system generation, the main parameters are recursion depth, phenotype, and spine curve. As recursion depth increases, the complexity and density of the trees increases. The phenotype and spine curves are categorical variables and vary the appearence of the tree uniquely.
 
 The default parameters for the L-system tree are as follows:
 
@@ -198,7 +210,10 @@ These images show the effect of varying each parameter on the default tree:
 
 ![Phenotype: Random](Phenotype-Random.png width=200 height=200) ![Phenotype: Bush](Phenotype-Bush.png width=200 height=200) ![Phenotype: Pine](Phenotype-Pine.png width=200 height=200)
 
-![Spine Curve: Curvy](SpineCurve-Curvy.png width=200 height=200) ![Spine Curve: Corkscrew](SpineCurve-Corkscrew.jpg width=200 height=200) ![Spine Curve: ](SpineCurve-Gentle.png width=200 height=200)
+![Spine Curve: Curvy](SpineCurve-Curvy.png width=200 height=200) ![Spine Curve: Corkscrew](SpineCurve-Corkscrew.jpg width=200 height=200) ![Spine Curve: Gentle](SpineCurve-Gentile.png width=200 height=200)urve-Gentle.png width=200 height=200)
+
+
+For the Space Colonization generation, the main parameters are number of anchor points, distance between tree nodes, anchor point kill distance, initial branch radius, radius growth factor, attraction radius, leafiness, discount rate, and envelope. As anchor points increases, the tree gets more dense. As the tree node distance increases, the branches get more segmented. As the kill distance increases, the branches have larger empty area around them. As initial branch radius increases the radius of the branches increases. As the radius growth factor increases, the growth of the branch radii decreases. As the attraction radius decreases, the tree becomes more gnarled. As leafiness increases the branch sections that spawn leaves occur further down the branches. As the discount rate increases, the tree spawns more small twigs and branches to fill out the tree. The envelope perimeter function is categorical and varys the appearence of the tree uniquely.
 
 The default parameters for the space colonization tree are as follows:
 

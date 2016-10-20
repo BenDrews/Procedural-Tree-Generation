@@ -138,13 +138,9 @@ void App::makeGUI() {
         treeSCPane->addButton("Generate tree", [this](){
 	    	drawMessage("Generating tree...");
             
-            Array<Point3> fruitLocations;
-            SCGenerator genSC;
-            shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::bulbEnvelope(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
-            
 	        Stopwatch sw;
     	    sw.tick(); //start the timer
-            genSC.skeletonToMeshSC(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "tree", skeleton, fruitLocations);
+            makeSCTree();
             sw.tock();
 
             debugPrintf("Elapsed Time: %f\n", sw.elapsedTime());
@@ -223,6 +219,14 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
     
     treeMesh.addMesh(leafMesh);
     treeMesh.toOBJ();
+}
+
+void App::makeSCTree() {
+
+    Array<Point3> fruitLocations;
+    SCGenerator genSC;
+    shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::bulbEnvelope(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
+    genSC.skeletonToMeshSC(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "tree", skeleton, fruitLocations);         
 }
 
 /**

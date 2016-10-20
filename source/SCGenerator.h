@@ -14,7 +14,7 @@
 #include <tuple>
 #include <stdlib.h>
 
-/** \brief Application framework. */
+/** \brief Logic to generate trees using the Space Colonization algorithm */
 class SCGenerator {
 protected:   
     void generateAnchorPoints(Array<Point3>& anchorPoints, int count, float height, float radius, std::function<float(float)> radiusCurve);
