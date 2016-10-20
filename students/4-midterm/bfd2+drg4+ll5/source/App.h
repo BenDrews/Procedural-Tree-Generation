@@ -24,6 +24,8 @@ public:
 	int branchSectionsL = 1;
 	const Array<String> phenotypesL = Array<String>("Normal", "Random", "Bush", "Pine");
 	int phenotypesIndexL = 0;
+	const Array<String> branchCallbackL = Array<String>("Straight", "Curvy", "Corkscrew");
+	int branchCallbackIndexL = 0;
 
     //Space colonization options
     int anchorCountSC = 1000;
@@ -56,7 +58,8 @@ protected:
     void initializeFruitDims();
 
     void makeLTree(String filename, Array<Point3>& fruitLocations);
-    void App::generateOrchard();
+    void generateOrchard();
+	void customOrchard();
   
 public:
     App(const GApp::Settings& settings = GApp::Settings());
