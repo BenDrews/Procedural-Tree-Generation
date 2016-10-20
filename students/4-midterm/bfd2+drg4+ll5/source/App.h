@@ -30,7 +30,7 @@ public:
     float heightSC = 20.0f;
     float radiusSC = 10.0f;
     int circlePointsSC = 10;
-    float treeDistanceSC = 0.6f;
+    float treeDistanceSC = 0.5f;
     float killDistanceSC = 2.0f;
     float branchRadiusSC = 0.01f;
     float radiusGrowthSC = 2.0f;

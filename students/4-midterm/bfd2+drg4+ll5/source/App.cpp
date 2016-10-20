@@ -101,7 +101,15 @@ void App::makeGUI() {
         treeLPane->addButton("Generate tree", [this](){
 	    	drawMessage("Generating tree...");
 	    	Array<Point3> fruitLocations = Array<Point3>();
+            
+	        Stopwatch sw;
+    	    sw.tick(); //start the timer
+
             makeLTree("tree", fruitLocations);
+            
+            sw.tock();
+
+            debugPrintf("Elapsed Time: %f\n", sw.elapsedTime());
 	    	ArticulatedModel::clearCache();
 	    	GApp::loadScene("Tree Testing");
 	    });
@@ -126,9 +134,15 @@ void App::makeGUI() {
             
             Array<Point3> fruitLocations;
             SCGenerator genSC;
+            
+	        Stopwatch sw;
+    	    sw.tick(); //start the timer
+
             shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::bulbEnvelope(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
             genSC.skeletonToMeshSC(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "tree", skeleton, fruitLocations);
 
+            sw.tock();
+            debugPrintf("Elapsed Time: %f\n", sw.elapsedTime());
 	    	ArticulatedModel::clearCache();
 	    	GApp::loadScene("Tree Testing");
 	    });
@@ -172,8 +186,8 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
 			{return LGenerator::pineTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
 	}
 
-    shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return LGenerator::corkscrew(t);},m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
-    genL.skeletonToMeshL(treeMesh, leafMesh, tree, [this](float t) {return LGenerator::corkscrew(t);}, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);},
+    shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return LGenerator::curvy(t);},m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
+    genL.skeletonToMeshL(treeMesh, leafMesh, tree, [this](float t) {return LGenerator::curvy(t);}, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);},
 			fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL);
     
     treeMesh.addMesh(leafMesh);

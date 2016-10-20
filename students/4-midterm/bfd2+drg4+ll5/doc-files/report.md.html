@@ -68,10 +68,6 @@ Specification
 
 - **TODO:: ADD EVALUATION METRIC FOR SPACE COLONIZATION MODEL**
 
-**Correctness images:**
-![Wireframe of leafless tree to demonstrate proper branch generation](tree1.png)
-
-![Three different tree phenotypes created with the same generation algorithm](specificationphenotypes.png)
 
 **Quality images:**
 ![An orchard with trees growing fruits, and small differences between trees to show variations within a single phenotype.](design4.jpg)
@@ -163,6 +159,55 @@ demonstrating that the program is working as intended (or not), as dictated by y
 ![Tree #2 with L-system generation](gTree2.png)
 
 ![Tree #3 with L-system generation](gTree3.png)
+
+
+![Wireframe of leafless tree to demonstrate proper branch generation](tree1.png)
+
+The default parameters for the L-system tree are as follows:
+
+1. Recursion Depth = 4
+2. Phenotype = Normal
+3. Spine Curve = Straight
+
+![Recursion Depth: 5](RecursionDepth-5.jpg width=200 height=200) ![Recursion Depth: 6](RecursionDepth-6.jpg width=200 height=200) ![Recursion Depth: 7](RecursionDepth-7.jpg width=200 height=200)
+
+![Phenotype: Random](Phenotype-Random.jpg width=200 height=200) ![Phenotype: Bush](Phenotype-Bush.jpg width=200 height=200) ![Phenotype: Pine](Phenotype-Pine.jpg width=200 height=200)
+
+![Spine Curve: Curvy](SpineCurve-Curvy.jpg width=200 height=200) ![Spine Curve: Corkscrew](SpineCurve-Corkscrew.jpg width=200 height=200) ![Spine Curve: ](SpineCurve-Curvy.jpg width=200 height=200)
+
+The default parameters for the space colonization tree are as follows:
+
+1. Anchor Points = 1000
+2. Tree Node Distance = 0.5
+3. Kill Distance = 2
+4. Initial Branch Radius = 0.01
+5. Radius Growth Factor = 2
+6. Attraction Radius = 100
+7. Leafiness = 10
+8. Discount Rate = 0.9
+9. Envelope = Bulb
+
+![Default Tree](Default-SC.jpg width=600)
+
+These images show the effect of varying each parameter on the default tree:
+
+![Anchor Points: 100](AnchorPoints-100.jpg width=200 height=200) ![Anchor Points: 500](AnchorPoints-500.jpg width=200 height=200) ![Anchor Points: 5000](AnchorPoints-5000.jpg width=200 height=200)
+
+![Node Distance: 0.1](NodeDistance-0.1.jpg width=200 height=200) ![Node Distance: 0.25](NodeDistance-0.25.jpg width=200 height=200) ![Node Distance: 1](NodeDistance-1.jpg width=200 height=200)
+
+![Kill Distance: 0.5](KillDistance-0.5.jpg width=200 height=200) ![Kill Distance: 1](KillDistance-1.jpg width=200 height=200) ![Kill Distance: 5](KillDistance-5.jpg width=200 height=200)
+
+![Initial Radius: 0.025](InitialRadius-0.025.jpg width=200 height=200) ![Initial Radius: 0.05](InitialRadius-0.05.jpg width=200 height=200) ![Initial Radius: 0.1](InitialRadius-0.1.jpg width=200 height=200)
+
+![Radius Growth Factor: 2.25](RadiusGrowthFactor-2.25.jpg width=200 height=200) ![Radius Growth Factor: 2.5](RadiusGrowthFactor-2.5.jpg width=200 height=200) ![Radius Growth Factor: 3](RadiusGrowthFactor-3.jpg width=200 height=200)
+
+![Attraction Radius: 5](AttractionRadius-5.jpg width=200 height=200) ![Attraction Radius: 10](AttractionRadius-10.jpg width=200 height=200) ![Attraction Radius: 50](AttractionRadius-50.jpg width=200 height=200)
+
+![Leafiness: 1](Leafiness-1.jpg width=200 height=200) ![Leafiness: 2](Leafiness-2.jpg width=200 height=200) ![Leafiness: 5](Leafiness-5.jpg width=200 height=200)
+
+![Discount Rate: 0](DiscountRate-0.jpg width=200 height=200) ![Discount Rate: 0.25](DiscountRate-0.25.jpg width=200 height=200) ![Discount Rate: 0.5](DiscountRate-0.5.jpg width=200 height=200)
+
+![Envelope: Cylindric](Envelope-Cylindric.jpg width=200 height=200) ![Envelope: Spherical](Envelope-Spherical.jpg width=200 height=200) ![Envelop: Conical](Envelope-Conical.jpg width=200 height=200)
 
 
 Quality Results

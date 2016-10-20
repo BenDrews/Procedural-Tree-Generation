@@ -33,5 +33,6 @@ public:
     
     static float sphericalEnvelope(float y);
     static float cylindricEnvelope(float y);
+    static float conicalEnvelope(float y);
     static float bulbEnvelope(float y);
 };
