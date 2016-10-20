@@ -2,8 +2,6 @@
 #include "Mesh.h"
 #include <vector>
 
-//typedef SmallArray<int, 3> Poly;
-
 Mesh::Mesh(const String& fn) {
 	filename = String(fn);
 	vertices = std::vector<Point3>();

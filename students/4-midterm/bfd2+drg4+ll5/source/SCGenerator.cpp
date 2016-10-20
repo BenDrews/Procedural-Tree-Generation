@@ -163,7 +163,7 @@ void SCGenerator::killAnchors(Array<Point3>& anchorPoints, shared_ptr<Tree>& res
 //Version that takes a hard coded index
 void SCGenerator::addCylindricSection(Mesh& mesh, const int& parentIndex, const int& currentIndex, const int& pts, const CoordinateFrame& origin, const float& radius) const {
 
-    for(int i = 0; i < pts; ++i) {
+    for (int i = 0; i < pts; ++i) {
 		float angle = (i * 2.0f * pif()) / pts;
         Vector3 vec = Vector3(cos(angle) * radius, 0.0f, sin(angle) * radius);
         vec = origin.pointToWorldSpace(vec);
@@ -171,9 +171,9 @@ void SCGenerator::addCylindricSection(Mesh& mesh, const int& parentIndex, const 
 		mesh.addVertex(vec);
 	}
 
-	for(int i = 0; i < pts; ++i) {
-		mesh.addFace(parentIndex + ((i + 1) % pts), parentIndex + i, currentIndex + i, 2, 3, 1, "bark");
-		mesh.addFace(currentIndex + ((i + 1) % pts), parentIndex + ((i + 1) % pts), currentIndex + i, 2, 4, 3, "bark");
+	for (int i = 0; i < pts; ++i) {
+		mesh.addFace(parentIndex + ((i + 1) % pts), parentIndex + i, currentIndex + i, 2, 3, 1, "bark0");
+		mesh.addFace(currentIndex + ((i + 1) % pts), parentIndex + ((i + 1) % pts), currentIndex + i, 2, 4, 3, "bark0");
 	}
 }
 

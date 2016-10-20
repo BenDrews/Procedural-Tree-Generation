@@ -70,7 +70,7 @@ void App::initializeFruitDims() {
 	FruitDimensions lemonDims = FruitDimensions("lemon whole.obj", m_options.initialHeightL / 1000.0f, 0.04f, 0.0f);
 	FruitDimensions pearDims = FruitDimensions("pear_export.obj", m_options.initialHeightL / 10.0f, 0.04f, 0.0f);
 	FruitDimensions bananaDims = FruitDimensions("banana.obj", m_options.initialHeightL / 2000.0f, 0.04f, -90.0f);
-	FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", m_options.initialHeightL / 100.0f, 0.08f, 90.0f);
+	FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", m_options.initialHeightL / 100.0f, 0.15f, 90.0f);
 	FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", m_options.initialHeightL / 1000.0f, 0.08f, 0.0f);
 
 	m_options.fruitDims.push(appleDims);
@@ -187,13 +187,13 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
 	if (m_options.phenotypesIndexL == 0) {
 		phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return LGenerator::normalTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
-	}else if (m_options.phenotypesIndexL == 1) {
-        phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
-			{return LGenerator::randomTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
-	}else if (m_options.phenotypesIndexL == 2) {
-        phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
-			{return LGenerator::bushTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
-	}else if (m_options.phenotypesIndexL == 3) {
+	} else if (m_options.phenotypesIndexL == 1) {
+         phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
+	 		{return LGenerator::randomTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
+	} else if (m_options.phenotypesIndexL == 2) {
+         phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
+	 		{return LGenerator::bushTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
+	} else if (m_options.phenotypesIndexL == 3) {
         phenotype = [this](Array<BranchDimensions>& nextBranches, float initialLength, const CoordinateFrame& initial, const Point3& branchEnd, int maxRecursionDepth, int currentRecursionDepth)
 			{return LGenerator::pineTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
 	}
@@ -328,18 +328,17 @@ void App::generateOrchard() {
 void App::customOrchard() {	
 	// options for L-system tree generation
 	m_options.maxRecursionDepthL = 5;
-	//m_options.initialHeightL = 1.0f;
 	m_options.circlePtsL = 12;
 	m_options.branchSectionsL = 10;
-	m_options.phenotypesIndexL = 2;
+	//m_options.phenotypesIndexL = 2;
 	m_options.branchCallbackIndexL = 0;
 
 	// options for size of orchard
 	m_options.numRows = 4;
-	m_options.numTrees = 3;
+	m_options.numTrees = 6;
 
 	// number of different tree models generated, and type of fruit
-	int numPhenotypes = m_options.numRows * m_options.numTrees;
+	int numPhenotypes = 12;
 	int fruitIndex = 4;
 	FruitDimensions fDims = m_options.fruitDims[fruitIndex];
 
@@ -364,13 +363,9 @@ void App::customOrchard() {
 	
 
 	// generate tree models
-	//Array<Point3> fruitLocations = Array<Point3>();
-    //SCGenerator genSC;
-    //shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::bulbEnvelope(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
-    //genSC.skeletonToMeshSC(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "tree0", skeleton, fruitLocations);
-
 	Array<Array<Point3>> fruitLocations = Array<Array<Point3>>();
 	for (int i = 0; i < numPhenotypes; ++i) {
+		m_options.phenotypesIndexL = rand.integer(0, 2);
 		m_options.initialHeightL = 1.0f + rand.uniform(0.0f, 0.5f);
 		fruitLocations.push(Array<Point3>());
 		std::ostringstream strs;
@@ -395,7 +390,7 @@ void App::customOrchard() {
     writer.writeNewlines(2);
     writer.printf("light = Light {");
 	writer.writeNewline();
-	writer.printf("attenuation = (0, 0, 1); bulbPower = Power3(4e+06); castsShadows = true; frame = CFrame::fromXYZYPRDegrees(-15, 500, -41, -164, -77, 77); shadowMapSize = Vector2int16(2048, 2048); spotHalfAngleDegrees = 5; type = \"SPOT\"; };");
+	writer.printf("attenuation = (0, 0, 1); bulbPower = Power3(4e+06); castsShadows = true; frame = CFrame::fromXYZYPRDegrees(-20, 500, -100, -164, -77, 77); shadowMapSize = Vector2int16(2048, 2048); spotHalfAngleDegrees = 5; type = \"SPOT\"; };");
     writer.writeNewlines(2);
     writer.printf("camera = Camera {");
 	writer.writeNewline();
