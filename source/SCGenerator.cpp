@@ -198,6 +198,14 @@ float SCGenerator::cylindricEnvelope(float y) {
     }
 }
 
+float SCGenerator::conicalEnvelope(float y) {
+    if(y < 0.2f) {
+        return 0.0f;
+    } else {
+        return -0.8f * y + 0.8f;
+    }
+}
+
 float SCGenerator::bulbEnvelope(float y) {
     if(y < 0.20f) {
         return 0.0f;
