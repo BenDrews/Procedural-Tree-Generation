@@ -216,7 +216,7 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
     String bark = "bark" + (String)(std::to_string(barkNum));
 
     shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return LGenerator::straight(t);},m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
-    genL.skeletonToMeshL(treeMesh, leafMesh, tree, [this](float t) {return LGenerator::straight(t);}, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);}, fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL, bark, m_options.fall);
+    genL.skeletonToMeshL(treeMesh, leafMesh, tree, [this](float t) {return LGenerator::straight(t);}, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);}, fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL, m_options.fall, bark);
     
     treeMesh.addMesh(leafMesh);
     treeMesh.toOBJ();
