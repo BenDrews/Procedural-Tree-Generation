@@ -211,7 +211,7 @@ float SCGenerator::bulbEnvelope(float y) {
         return 0.0f;
     } else if (y >= 0.20f && y < 0.4f) {
         return sin((5*pif() * y / 2) - pif() / 2);
-    } else if( y >= 0.4f) {
+    } else {
         return (-2.7777f * pow(y - 0.4f, 2.0f)) + 1.0f;
     }
 }
