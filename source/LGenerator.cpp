@@ -13,7 +13,7 @@
 /**Main method for L-System tree generation **/
 shared_ptr<Tree> LGenerator::makeLTreeSkeleton(const CoordinateFrame& initial, std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, std::function<Vector3(float)> spineCurve, float length, int maxRecursionDepth, int currentRecursionDepth, shared_ptr<Tree> parent){
     shared_ptr<Tree> tree = Tree::create(initial, parent);
-    Point3 branchEnd = initial.pointToWorldSpace(length * spineCurve(19.0f/20.0f));
+    Point3 branchEnd = initial.pointToWorldSpace(length * spineCurve(1.0f));
 
     // callback function to decide how to recurse, populates an array of BranchDimensions which contain coordinate frames and lengths for the next branches
     Array<BranchDimensions> nextBranches;
@@ -162,7 +162,7 @@ Vector3 LGenerator::curvy(float t) {
 }
 
 Vector3 LGenerator::corkscrew(float t) {
-    return Vector3(sin(pif() * t * 4), t, cos(pif() * t * 4) - 1);
+    return Vector3(0.25f * sin(pif() * t * 4.0f), t, 0.25f * (cos(pif() * t * 4.0f) - 1.0f));
 }
 
 
