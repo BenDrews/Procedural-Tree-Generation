@@ -31,5 +31,7 @@ public:
     
     void skeletonToMeshSC(int circlePoints, float initRadius, float radiusGrowth, float leafiness, String filename, shared_ptr<Tree>& skeleton, Array<Point3>& fruitLocations);
     
-    static float envelopePerimeter(float y);
+    static float sphericalEnvelope(float y);
+    static float cylindricEnvelope(float y);
+    static float bulbEnvelope(float y);
 };

@@ -177,12 +177,34 @@ void SCGenerator::addCylindricSection(Mesh& mesh, const int& parentIndex, const 
 	}
 }
 
-//Function for determining the shape of the envelope.
-float SCGenerator::envelopePerimeter(float y) {
+/*
+    Functions to define different envelope perimeters
+*/
+
+
+float SCGenerator::sphericalEnvelope(float y) {
     if(y < 0.20f) {
         return 0.0f;
     } else {
         return sin((5*pif() * y / 4) - pif()/4.0f);
+    }
+}
+
+float SCGenerator::cylindricEnvelope(float y) {
+    if(y < 0.20f) {
+        return 0.0f;
+    } else {
+        return 1.0f;
+    }
+}
+
+float SCGenerator::bulbEnvelope(float y) {
+    if(y < 0.20f) {
+        return 0.0f;
+    } else if (y >= 0.20f && y < 0.4f) {
+        return sin((5*pif() * y / 2) - pif() / 2);
+    } else if( y >= 0.4f) {
+        return (-2.7777f * pow(y - 0.4f, 2.0f)) + 1.0f;
     }
 }
 

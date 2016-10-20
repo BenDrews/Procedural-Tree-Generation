@@ -126,7 +126,7 @@ void App::makeGUI() {
             
             Array<Point3> fruitLocations;
             SCGenerator genSC;
-            shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::envelopePerimeter(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
+            shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::bulbEnvelope(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
             genSC.skeletonToMeshSC(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "tree", skeleton, fruitLocations);
 
 	    	ArticulatedModel::clearCache();
@@ -172,8 +172,8 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
 			{return LGenerator::pineTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
 	}
 
-    shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return LGenerator::straight(t);},m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
-    genL.skeletonToMeshL(treeMesh, leafMesh, tree, [this](float t) {return LGenerator::straight(t);}, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);},
+    shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return LGenerator::corkscrew(t);},m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
+    genL.skeletonToMeshL(treeMesh, leafMesh, tree, [this](float t) {return LGenerator::corkscrew(t);}, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);},
 			fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL);
     
     treeMesh.addMesh(leafMesh);
@@ -191,7 +191,7 @@ void App::generateOrchard() {
 		makeLTree("firstTree", fruitLocations);
 	}
 	else {
-		shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::envelopePerimeter(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
+		shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::bulbEnvelope(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
 		genSC.skeletonToMeshSC(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "firstTree", skeleton, fruitLocations);
 	}
 
