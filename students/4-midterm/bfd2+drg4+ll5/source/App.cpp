@@ -209,14 +209,17 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
 	} else if (m_options.branchCallbackIndexL == 2) {
 		branchCallback = [this](float t)
 		{ return LGenerator::corkscrew(t); };
+	}else if (m_options.branchCallbackIndexL == 3) {
+		branchCallback = [this](float t)
+		{ return LGenerator::gentleCurve(t); };
 	}
 
 	Random& rand = Random::threadCommon();
     int barkNum = rand.integer(0,3);
     String bark = "bark" + (String)(std::to_string(barkNum));
 
-    shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return LGenerator::straight(t);},m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
-    genL.skeletonToMeshL(treeMesh, leafMesh, tree, [this](float t) {return LGenerator::straight(t);}, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);}, fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL, m_options.fall, bark);
+    shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, branchCallback, m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
+    genL.skeletonToMeshL(treeMesh, leafMesh, tree, branchCallback, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);}, fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL, m_options.fall, bark);
     
     treeMesh.addMesh(leafMesh);
     treeMesh.toOBJ();

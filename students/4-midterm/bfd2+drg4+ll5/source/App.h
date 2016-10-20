@@ -25,7 +25,7 @@ public:
 	const Array<String> phenotypesL = Array<String>("Normal", "Random", "Bush", "Pine");
     bool fall = true;
 	int phenotypesIndexL = 0;
-	const Array<String> branchCallbackL = Array<String>("Straight", "Curvy", "Corkscrew");
+	const Array<String> branchCallbackL = Array<String>("Straight", "Curvy", "Corkscrew", "Gentle");
 	int branchCallbackIndexL = 0;
 
     //Space colonization options
