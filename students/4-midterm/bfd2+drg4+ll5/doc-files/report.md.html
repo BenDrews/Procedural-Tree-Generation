@@ -129,24 +129,26 @@ Design
 **Major functions of LGenerator**
  Function             | Description                                                
  ---------------------|------------------------------------------------------------
- makeLTreeSkeleton    | Makes a tree skeleton out of an L-system, defining where tree nodes are located
- skeletonToMeshL      | Takes tree skeleton produced by makeLTreeSkeleton and writes it to a Mesh class
- addLeaf / addLeaves  | Given a Mesh, adds two-sided triangle(s) to the Mesh
- addFruits            | Populates an array with Point3 locations of where fruits should be added in relation to the CoordinateFrame of the base of a tree
- addCylindricSection  | Given a Mesh and an initial circle, adds an additional circle to the mesh underneath the initial circle and adds faces between the circles
+ [makeLTreeSkeleton](../build/doc/class_l_generator.html#aa89c792dda28ee0307de9278ec2bc315)    | Makes a tree skeleton out of an L-system, defining where tree nodes are located
+ [skeletonToMeshL](../build/doc/class_l_generator.html#ab79bbb355f23f667839a375ab82eeb42)      | Takes tree skeleton produced by makeLTreeSkeleton and writes it to a Mesh class
+ [addLeaf / addLeaves](../build/doc/class_l_generator.html#a7bdf8b4a1060d5202c3d35dbc40b09e5)  | Given a Mesh, adds two-sided triangle(s) to the Mesh
+ [addFruits](../build/doc/class_l_generator.html#a600be256c3b3dded835102116ba22c8b)            | Populates an array with Point3 locations of where fruits should be added in relation to the CoordinateFrame of the base of a tree
+ [addCylindricSection](../build/doc/class_l_generator.html#ac540c72687ca77db7863cc1fab817b62)  | Given a Mesh and an initial circle, adds an additional circle to the mesh underneath the initial circle and adds faces between the circles
 
 
 **Major functions of SCGenerator**
  Function             | Description                                                
  ---------------------|------------------------------------------------------------
- generateAnchorPoints | Returns a randomly distributed set of points inside the volume specified by the `envelopePerimeter` parameter
- addIntermediateAnchors| Generates a new set of anchors within the envelope and adds them to an existing set of anchors
- findClosestNodes     | Selects the closest tree node to each anchor
- growTreeNodes        | Grows selected nodes in the right directions
- killAnchors          | Deletes anchors too close to the tree
- addCylindricSection  | Given a Mesh and an initial circle, adds an additional circle to the mesh underneath the initial circle and adds faces between the circles
- addLeaf              | Given a Mesh, adds a two-sided triangle to the Mesh
- addFruits            | Populates an array with Point3 locations of where fruits should be added in relation to the CoordinateFrame of the base of a tree
+[makeSCTreeSkeleton](../build/doc/class_s_c_generator.html#a407dce858717c9f41662cee510ef8ce9)    | Makes a tree skeleton using the space colonization algorithm
+[skeletonToMeshSC](../build/doc/class_s_c_generator.html#ab67dbb1f8bf279b1e747622f1330e2b0)      | Takes tree skeleton produced by makeSCTreeSkeleton and writes it to a Mesh class
+ [generateAnchorPoints](../build/doc/class_s_c_generator.html#afd3dbaf6dc253db30a15eb02045d0ca7) | Returns a randomly distributed set of points inside the volume specified by the `envelopePerimeter` parameter
+ [addIntermediateAnchors](../build/doc/class_s_c_generator.html#a8c78e82c8c5ead0f1de9a5c2af468e9e) | Generates a new set of anchors within the envelope and adds them to an existing set of anchors
+ [findClosestNodes](../build/doc/class_s_c_generator.html#a330cd2da2229b6784c2bc4b6069298ce)     | Selects the closest tree node to each anchor
+ [growTreeNodes](../build/doc/class_s_c_generator.html#a5346d1e64a8b8f2cbeb3325e2920c1f6)        | Grows selected nodes in the right directions
+ [killAnchors](../build/doc/class_s_c_generator.html#a3a4af4f7886e84b58eb6f99dd178b6bf)          | Deletes anchors too close to the tree
+ [addCylindricSection](../build/doc/class_s_c_generator.html#a60da8995608bf468d72fe9f5a8c6d12f)  | Given a Mesh and an initial circle, adds an additional circle to the mesh underneath the initial circle and adds faces between the circles
+ [addLeaf](../build/doc/class_s_c_generator.html#ac68744f7d3cd6cd323c85871201b98e1)              | Given a Mesh, adds a two-sided triangle to the Mesh
+ [addFruits](../build/doc/class_s_c_generator.html#a4dc104e603613cce58339d15600f7a7b)            | Populates an array with Point3 locations of where fruits should be added in relation to the CoordinateFrame of the base of a tree
 
 
 **Major functions of Mesh**
