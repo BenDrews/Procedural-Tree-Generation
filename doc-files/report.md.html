@@ -5,7 +5,7 @@
             drg4@williams.edu
             ll5@williams.edu
 
-![The beauty of computer graphics is making interesting models!](interestingTree.png)
+![The beauty of computer graphics is that if you make one tree, you can make a forest of them.](evocativescene.png)
 
 
 Introduction 
@@ -155,22 +155,11 @@ Correctness Results
 ==================================
 demonstrating that the program is working as intended (or not), as dictated by your specification. These will probably be on very simple cases that can be hand-verified or are self-evidently correct. Explain why these are good and nearly-comprehensive tests. The results are frequently images in graphics projects, but may also be other forms of data.
 
-![Wireframe of leafless tree](leafless.png)
-
-![Same tree as above with leaves](leafful.png)
-
-![Tree #1 with L-system generation](gTree1.png)
-
-![Tree #2 with L-system generation](gTree2.png)
-
-![Tree #3 with L-system generation](gTree3.png)
-
-
 ![Wireframe of leafless tree to demonstrate proper branch generation](tree1.png)
 
 The default parameters for the L-system tree are as follows:
 
-1. Recursion Depth = 4
+1. Recursion Depth = 5
 2. Phenotype = Normal
 3. Spine Curve = Straight
 
@@ -229,7 +218,7 @@ Quality Results
 
 Evocative Result
 ==================================
-![](planets.png)
+![](evocativescene.png)
 
 
 Schedule
@@ -239,8 +228,8 @@ Task                  | Description                                             
  ---------------------|------------------------------------------------------------|--------------:|
  Report Draft    (BDL)| Basic answers/placeholders inputted                        |     10/06     |   
  Code Draft      (BDL)| Code with basic format and structure done                  |     10/07     |  
-fix CFrame bug     (D)| Cylinders won't generate at an angle, fix                  |     10/08     |   
-fix floating tree bug (BD)| Branches are floating above their parents, fix         |     10/09     |  
+ fix CFrame bug    (D)| Cylinders won't generate at an angle, fix                  |     10/08     |   
+ fix floating tree bug (BD)| Branches are floating above their parents, fix        |     10/09     |  
  Add Leaves          (D)| Add leaf generation                                      |     10/10     |  
  Report MVP        (BDL)| Get to Report MVP                                        |     10/12     |  
  Add Space Colonization (B)| Add space colonization tree generation algorithm      |     10/14     |  
@@ -252,12 +241,19 @@ fix floating tree bug (BD)| Branches are floating above their parents, fix      
  Add texture     (B)  | Map texture coordinates to leaves and branches             |     10/14     |
  Add bump map    (B)  | Map bump coordinates to leaves and branches                |     10/14     |
  Add GUI Functionality (L)| Add elements from specification to the GUI             |     10/14     |
+ Add fruit trees (L)  | Write function to add fruits to a scene where they would be growing on a tree | 10/16 |
+ Add tree skeleton for L-system (D)| Rewrote L-system algorithm to use Ben's Tree class| 10/17     |
+ Add generate orchard (L)| Add function to generate orchards of fruit trees        |     10/18     |
+ Make more phenotypes (D)| Write different callback functions to generate different looking trees | 10/18 |
+ Make more spine curves (B)| Write different callback functions to generate trees with branches curving differently | 10/18 |
+ Clean up code (B)    | Abstract methods into separate classes, add comments, fix bugs|  10/18     |
 
- 
    
 Change Log
 ==================================
-1. Added a new tree generation algorithm, **space colonization**, to the specification - Ben, 10/11.
+1. Broke up L-system generation and space colonization generation into different classes - Ben, 10/18.
+2. Modified L-system generation algorithm to use Ben's tree class - Diego, 10/17.
+3. Added a new tree generation algorithm, **space colonization**, to the specification - Ben, 10/11.
 
 
 <!-- Markdeep: -->
