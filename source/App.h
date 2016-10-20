@@ -23,6 +23,7 @@ public:
 	int circlePtsL = 3;
 	int branchSectionsL = 1;
 	const Array<String> phenotypesL = Array<String>("Normal", "Random", "Bush", "Pine");
+    bool fall = true;
 	int phenotypesIndexL = 0;
 	const Array<String> branchCallbackL = Array<String>("Straight", "Curvy", "Corkscrew");
 	int branchCallbackIndexL = 0;
@@ -60,6 +61,7 @@ protected:
     void makeLTree(String filename, Array<Point3>& fruitLocations);
     void generateOrchard();
 	void customOrchard();
+    void App::generateForest();
   
 public:
     App(const GApp::Settings& settings = GApp::Settings());

@@ -71,7 +71,7 @@ void Mesh::toOBJ() {
     String objFilename = filename + (String)".OBJ";
 	TextOutput tOut = TextOutput(objFilename);
 	
-    tOut.printf("mtllib " + filename + ".mtl\n");
+    tOut.printf("mtllib tree.mtl\n");
 
 	for (int i = 0; i < vertexCount; ++i) {
 		Point3 vertex = vertices.at(i);

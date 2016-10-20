@@ -101,15 +101,18 @@ void App::makeGUI() {
 	    treeLPane->addNumberBox("Branch sections:", &m_options.branchSectionsL, "", GuiTheme::LOG_SLIDER, 1, 100);
         treeLPane->addDropDownList("Phenotype", m_options.phenotypesL, &m_options.phenotypesIndexL);
         treeLPane->addDropDownList("Branch callback function", m_options.branchCallbackL, &m_options.branchCallbackIndexL);
-		treeLPane->addButton("Generate tree", [this](){
+        treeLPane->addCheckBox("Autumn", &m_options.fall);
+
+
+        treeLPane->addButton("Generate tree", [this](){
 	    	drawMessage("Generating tree...");
 	    	Array<Point3> fruitLocations = Array<Point3>();
-            
-	        Stopwatch sw;
-    	    sw.tick(); //start the timer
 
+            Stopwatch sw;
+    	    sw.tick(); //start the timer
             makeLTree("tree", fruitLocations);
-            
+            //generateForest();
+         
             sw.tock();
 
             debugPrintf("Elapsed Time: %f\n", sw.elapsedTime());
@@ -195,7 +198,8 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
 			{return LGenerator::pineTree(nextBranches, initialLength, initial, branchEnd, maxRecursionDepth, currentRecursionDepth);};
 	}
 
-	std::function<Vector3(float t)> branchCallback;
+
+    std::function<Vector3(float t)> branchCallback;
 	if (m_options.branchCallbackIndexL == 0) {
 		branchCallback = [this](float t)
 		{ return LGenerator::straight(t); };
@@ -207,9 +211,12 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
 		{ return LGenerator::corkscrew(t); };
 	}
 
-    shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, branchCallback, m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
-    genL.skeletonToMeshL(treeMesh, leafMesh, tree, branchCallback, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);},
-			fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL);
+	Random& rand = Random::threadCommon();
+    int barkNum = rand.integer(0,3);
+    String bark = "bark" + (String)(std::to_string(barkNum));
+
+    shared_ptr<Tree> tree = genL.makeLTreeSkeleton(CoordinateFrame(), phenotype, [this](float t) {return LGenerator::straight(t);},m_options.initialHeightL, m_options.maxRecursionDepthL, m_options.maxRecursionDepthL);
+    genL.skeletonToMeshL(treeMesh, leafMesh, tree, [this](float t) {return LGenerator::straight(t);}, [this](float t, shared_ptr<Tree> tree) {return LGenerator::branchRadius(t, tree);}, fruitLocations,  m_options.circlePtsL, m_options.branchSectionsL, m_options.initialHeightL, bark, m_options.fall);
     
     treeMesh.addMesh(leafMesh);
     treeMesh.toOBJ();
@@ -309,8 +316,8 @@ void App::generateOrchard() {
     writer.printf("};");
 
     writer.commit();
-}
 
+}
 
 /**
 	Generates custom orchard scene
@@ -430,3 +437,79 @@ void App::customOrchard() {
 
     writer.commit();
 };
+
+void App::generateForest() {
+    Array<Point3> fruitLocations = Array<Point3>();
+    float density = 50;
+
+	makeLTree("firstTree", fruitLocations);
+
+
+    TextOutput writer = TextOutput("scene/forest.Scene.Any");
+	Random& rand = Random::threadCommon();
+
+    writer.printf("{");
+    writer.writeNewline();
+    writer.printf("name = \"Forest\";");
+    writer.writeNewlines(2);
+
+    // models section
+    writer.printf("models = {");
+    writer.writeNewline();
+
+    for(int i = 0; i < 30; ++i){
+        String filename = "tree" + (String)(std::to_string(i));
+        m_options.maxRecursionDepthL = rand.integer(5, 7);
+
+        if(m_options.maxRecursionDepthL == 5){
+             m_options.initialHeightL = rand.uniform(0.5f, 1.0f);
+        }else if(m_options.maxRecursionDepthL == 6){
+             m_options.initialHeightL = rand.uniform(1.5f, 2.5f);
+        }else{
+            m_options.initialHeightL = rand.uniform(2.0f, 3.0f);
+
+        }
+       // m_options.phenotypesIndexL = rand.integer(1,2);
+        makeLTree(filename, fruitLocations);
+        writer.printf("treeModel%d = ArticulatedModel::Specification {", i);
+	    writer.writeNewline();
+	    writer.printf("filename = \"tree%d.OBJ\"; };", i);
+	    writer.writeNewlines(2);
+    }
+    writer.printf("};");
+    writer.writeNewlines(2);
+    // entities section
+    writer.printf("entities = {");
+    writer.writeNewline();
+
+    writer.printf("skybox = Skybox { texture = \"cubemap/plainsky/null_plainsky512_*.jpg\"; };");
+    writer.writeNewlines(2);
+    writer.printf("light = Light {");
+	writer.writeNewline();
+	writer.printf("attenuation = (0, 0, 1); bulbPower = Power3(4e+06); castsShadows = true; frame = CFrame::fromXYZYPRDegrees(-15, 500, -41, -164, -77, 77); shadowMapSize = Vector2int16(2048, 2048); spotHalfAngleDegrees = 5; type = \"SPOT\"; };");
+    writer.writeNewlines(2);
+    writer.printf("camera = Camera {");
+	writer.writeNewline();
+	writer.printf("depthOfFieldSettings = DepthOfFieldSettings { enabled = true; farBlurRadiusFraction = 0.005; farBlurryPlaneZ = -100; farSharpPlaneZ = -40; focusPlaneZ = -10; lensRadius = 0.01; model = \"NONE\"; nearBlurRadiusFraction = 0.015; nearBlurryPlaneZ = -0.25; nearSharpPlaneZ = -1; };");
+    writer.writeNewline();
+	writer.printf("frame = CFrame::fromXYZYPRDegrees(0, 1, 4); };");
+
+    for (int i = 0; i < 100; ++i) {
+		float xPos = rand.uniform(-(density/2.0f),(density/2.0f));				
+		float zPos = rand.uniform(-(density/2.0f),(density/2.0f));
+
+		writer.writeNewlines(2);
+        int modelNumber = i%30;
+		writer.printf("tree%d = VisibleEntity { model = \"treeModel%d\";", i, modelNumber);
+		writer.writeNewline();
+		writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, %f, %f, 0, 0, 0); };", xPos, 0.0f, zPos);
+		writer.writeNewline();
+    }
+
+    writer.printf("};");
+    writer.writeNewlines(2);
+
+    writer.printf("};");
+
+    writer.commit();
+}
