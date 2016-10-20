@@ -68,7 +68,7 @@ void App::initializeFruitDims() {
 	
 	FruitDimensions appleDims = FruitDimensions("apple textured obj.obj", m_options.initialHeightL / 1000.0f, 0.08f, 0.0f);
 	FruitDimensions lemonDims = FruitDimensions("lemon whole.obj", m_options.initialHeightL / 1000.0f, 0.04f, 0.0f);
-	FruitDimensions pearDims = FruitDimensions("pear_export.obj", m_options.initialHeightL / 50.0f, 0.04f, 0.0f);
+	FruitDimensions pearDims = FruitDimensions("pear_export.obj", m_options.initialHeightL / 10.0f, 0.04f, 0.0f);
 	FruitDimensions bananaDims = FruitDimensions("banana.obj", m_options.initialHeightL / 2000.0f, 0.04f, -90.0f);
 	FruitDimensions moneyDims = FruitDimensions("Dollar stack wild.obj", m_options.initialHeightL / 100.0f, 0.08f, 90.0f);
 	FruitDimensions teapotDims = FruitDimensions("glassTeapot.obj", m_options.initialHeightL / 1000.0f, 0.08f, 0.0f);
@@ -228,13 +228,16 @@ void App::makeLTree(String filename, Array<Point3>& fruitLocations) {
 void App::generateOrchard() {
 	Array<Point3> fruitLocations = Array<Point3>();
     SCGenerator genSC;
+	float height;
 
 	if (m_options.typesIndex == 0) {
 		makeLTree("firstTree", fruitLocations);
+		height = m_options.initialHeightL;
 	}
 	else {
 		shared_ptr<Tree> skeleton = genSC.makeSCTreeSkeleton(m_options.anchorCountSC, [this](float y) {return SCGenerator::bulbEnvelope(y);}, m_options.heightSC, m_options.radiusSC, m_options.killDistanceSC, m_options.treeDistanceSC, m_options.attractionRadiusSC, m_options.discountRateSC, Point3(0,0,0));
 		genSC.skeletonToMeshSC(m_options.circlePointsSC, m_options.branchRadiusSC, m_options.radiusGrowthSC, m_options.leafinessSC, "firstTree", skeleton, fruitLocations);
+		height = m_options.heightSC;
 	}
 
 	FruitDimensions fDims = m_options.fruitDims[m_options.fruitsIndex];
@@ -283,16 +286,16 @@ void App::generateOrchard() {
 	writer.printf("frame = CFrame::fromXYZYPRDegrees(0, 1, 4); };");
 
     for (int i = 0; i < m_options.numRows; ++i) {
-		int xOffset = m_options.maxRecursionDepthL * i;
+		float xOffset = height * 3.0f * i;
 		
 		for (int j = 0; j < m_options.numTrees; ++j) {
 			int zVar = rand.integer(0, 10);
-			int zOffset = m_options.maxRecursionDepthL * j;
+			float zOffset = height * 3.0f * j;
 
 			writer.writeNewlines(2);
 			writer.printf("tree%d%d = VisibleEntity { model = \"treeModel\";", i, j);
 			writer.writeNewline();
-			writer.printf("frame = CFrame::fromXYZYPRDegrees(%d, 0, %d, %d, 0, 0); };", xOffset, zOffset, rand.integer(0,360));
+			writer.printf("frame = CFrame::fromXYZYPRDegrees(%f, 0, %f, %d, 0, 0); };", xOffset, zOffset, rand.integer(0,360));
 			writer.writeNewlines(2);
 
 			CoordinateFrame frame = CoordinateFrame(Point3(xOffset, 0.0f, zOffset));
@@ -368,7 +371,7 @@ void App::customOrchard() {
 
 	Array<Array<Point3>> fruitLocations = Array<Array<Point3>>();
 	for (int i = 0; i < numPhenotypes; ++i) {
-		m_options.initialHeightL = 1.0f + rand.uniform();
+		m_options.initialHeightL = 1.0f + rand.uniform(0.0f, 0.5f);
 		fruitLocations.push(Array<Point3>());
 		std::ostringstream strs;
 		strs << "tree" << i;
@@ -401,11 +404,11 @@ void App::customOrchard() {
 	writer.printf("frame = CFrame::fromXYZYPRDegrees(0, 1, 4); };");
 
     for (int i = 0; i < m_options.numRows; ++i) {
-		float xOffset = m_options.initialHeightL * 3.0f * i;
+		float xOffset = m_options.initialHeightL * 4.5f * i;
 		
 		for (int j = 0; j < m_options.numTrees; ++j) {
 			int zVar = rand.integer(0, 10);
-			float zOffset = m_options.initialHeightL * 2.5f * j;
+			float zOffset = m_options.initialHeightL * 3.5f * j;
 
 			int phenotype = rand.integer(0, numPhenotypes - 1);
 			writer.writeNewlines(2);
@@ -467,8 +470,8 @@ void App::generateForest() {
              m_options.initialHeightL = rand.uniform(1.5f, 2.5f);
         }else{
             m_options.initialHeightL = rand.uniform(2.0f, 3.0f);
-
         }
+
        // m_options.phenotypesIndexL = rand.integer(1,2);
         makeLTree(filename, fruitLocations);
         writer.printf("treeModel%d = ArticulatedModel::Specification {", i);

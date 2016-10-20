@@ -1,9 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <ClCompile Include="source\App.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="source\Mesh.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -22,11 +19,11 @@
     <ClCompile Include="source\LGenerator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="source\App.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="source\App.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="source\Mesh.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -43,6 +40,9 @@
     <ClInclude Include="source\LGenerator.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="source\App.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="resources.rc" />
@@ -56,6 +56,9 @@
       <Filter>Scene Files</Filter>
     </None>
     <None Include="data-files\scene\orchard.Scene.Any">
+      <Filter>Scene Files</Filter>
+    </None>
+    <None Include="data-files\scene\customOrchard.Scene.Any">
       <Filter>Scene Files</Filter>
     </None>
   </ItemGroup>

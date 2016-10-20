@@ -18,7 +18,7 @@ public:
 	public: 
 		
     //L-system options
-    int maxRecursionDepthL = 4;
+    int maxRecursionDepthL = 5;
 	float initialHeightL = 1.0f;
 	int circlePtsL = 3;
 	int branchSectionsL = 1;
