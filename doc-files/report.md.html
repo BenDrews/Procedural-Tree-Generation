@@ -119,14 +119,37 @@ Design
 **Major functions of App**
  Function             | Description                                                
  ---------------------|------------------------------------------------------------
- makeTree             | Creates Meshes for the tree and the leaves of the tree, initializes the length of the “trunk” of the tree, and calls makeBranch
- makeBranch           | Recursively adds branches to a tree mesh, and calls addLeaves when recursionDepth is zero
+ makeLTree            | Creates Meshes for a tree and the leaves of the tree, constructs an LGenerator to create the skeleton of the tree and write the skeleton to an OBJ file, handles logic of passing the right phenotype and branch callback function based on chosen parameters in GUI
+ generateOrchard      | Generates and displays a Scene.Any file of multiple fruit trees based on the parameters in GUI
+ customOrchard        | Generates the orchard used for our quality image
+ generateForest       | Generates the forest used for our quality image
+
+
+**Major functions of LGenerator**
+ Function             | Description                                                
+ ---------------------|------------------------------------------------------------
+ makeLTreeSkeleton    | Makes a tree skeleton out of an L-system, defining where tree nodes are located
+ skeletonToMeshL      | Takes tree skeleton produced by makeLTreeSkeleton and writes it to a Mesh class
+ addLeaf / addLeaves  | Given a Mesh, adds two-sided triangle(s) to the Mesh
+ addFruits            | Populates an array with Point3 locations of where fruits should be added in relation to the CoordinateFrame of the base of a tree
  addCylindricSection  | Given a Mesh and an initial circle, adds an additional circle to the mesh underneath the initial circle and adds faces between the circles
- addLeaves            | Given a Mesh, adds a two-sided triangle to the Mesh
- generateAnchorPoints | returns a randomly distributed set of points inside the volume specified by the `envelopePerimeter` parameter
+
+
+**Major functions of SCGenerator**
+ Function             | Description                                                
+ ---------------------|------------------------------------------------------------
+ generateAnchorPoints | Returns a randomly distributed set of points inside the volume specified by the `envelopePerimeter` parameter
+ addIntermediateAnchors| Generates a new set of anchors within the envelope and add them to the set of anchors
+ findClosestNodes     |
+ growTreeNodes        |
+ killAnchors          |
+ addCylindricSection  |
+ addLeaf              | Given a Mesh, adds a two-sided triangle to the Mesh
+ addFruits            | Populates an array with Point3 locations of where fruits should be added in relation to the CoordinateFrame of the base of a tree
+
+ 
  findClosestAnchor    | returns an array of the closest anchor points to each tree node that is within the radius of attraction
  findGrowthDirections | returns a map from the trees that have an anchor point within the radius of attraction to the average direction from that tree node to all anchors attracting it
-
 
 **Major functions of Mesh**
  Function             | Description                                                
@@ -144,11 +167,11 @@ Design
  increment            | Increments all of the points of the face by a given number
 
 
+We have two classes to handle our tree generation, LGenerator, which generates an L-system tree, and SCGenerator, which generates a space colonization tree.
+
 Our program has four main functions: makeTree, makeBranch, addCylindricSection, and addLeaves. The makeTree function initializes the Meshes for the body of the tree and the leaves of the tree, and calls makeBranch to add cylinders to the Mesh. makeBranch is given a recursion depth that is decremented each time it is called. When the recursion depth is zero, it calls addLeaves to add leaves to the end of the current branch instead of constructing a new branch. addCylindricSection is a helper method for constructing cylinders that adds a circle underneath an initial circle. This design makes sense because we can see the initial parameters of the tree we are making by looking at the makeTree method call, and without having to see the details of how the tree is constructed in makeBranch. Also, this will allow us to have different makeBranch methods in order to generate trees of different phenotypes.
 
-To handle the logic of adding vertices and faces to a Mesh and writing the Mesh to a file in OFF format, we used Ben’s Mesh class from the Meshes lab. A `Vector` of `Point3`s is used to store the vertices and a `Vector` of `Poly`s, which are `SmallArray`s of three `int`s, is used to store the faces. This way, we do not have to write OFF files of generated trees directly in our App class, which would make things messy and bulky.
-
-**TODO:: WRITE DESCRIPTION OF FACE CLASS**
+To handle the logic of adding vertices and faces to a Mesh and writing the Mesh to a file in OFF format, we used Ben’s Mesh class from the Meshes lab. A `Vector` of `Point3`s is used to store the vertices and a `Vector` of `SmallArray`s of three `int`s, is used to store the faces. We also added a Face class to Mesh, which stores all the information we need to know about the faces of a mesh, including its points as well as its texture points. By having these classes, we do not have to write OFF or OBJ files of generated trees directly in our App class, which would make things messy and bulky.
 
 
 Correctness Results
