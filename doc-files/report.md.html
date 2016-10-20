@@ -62,11 +62,25 @@ Specification
 
 **Program evaluation metric:**
 
-- Graph the time it took to render a tree model versus the number of child branches with a set recursion depth of 7
+- Graph of the time it took to generate an L-system tree model with normal phenotype, straight spine curve, 5 cirlce points, and 1 branch section versus recursion depth:
 
-- Graph the time it took to render a tree model versus the recursion depth with three child branches at each recursion.
+![](timevrecdepth.png)
 
-- **TODO:: ADD EVALUATION METRIC FOR SPACE COLONIZATION MODEL**
+- Graph of the time it took to generate a space colonization tree model versus the number of anchor points used:
+
+![](timevanchorpts.png)
+
+- Graph of the time it took to generate a space colonization tree model versus the tree node distance:
+
+![](timevtreenodedist.png)
+
+- Graph of the time it took to generate a space colonization tree model versus the kill distance:
+
+![](timevkilldist.png)
+
+- Graph of the time it took to generate a space colonization tree model versus the discount rate:
+
+![](timevdiscountrate.png)
 
 
 Topic Overview 
@@ -129,17 +143,14 @@ Design
  Function             | Description                                                
  ---------------------|------------------------------------------------------------
  generateAnchorPoints | Returns a randomly distributed set of points inside the volume specified by the `envelopePerimeter` parameter
- addIntermediateAnchors| Generates a new set of anchors within the envelope and add them to the set of anchors
- findClosestNodes     |
- growTreeNodes        |
- killAnchors          |
- addCylindricSection  |
+ addIntermediateAnchors| Generates a new set of anchors within the envelope and adds them to an existing set of anchors
+ findClosestNodes     | Selects the closest tree node to each anchor
+ growTreeNodes        | Grows selected nodes in the right directions
+ killAnchors          | Deletes anchors too close to the tree
+ addCylindricSection  | Given a Mesh and an initial circle, adds an additional circle to the mesh underneath the initial circle and adds faces between the circles
  addLeaf              | Given a Mesh, adds a two-sided triangle to the Mesh
  addFruits            | Populates an array with Point3 locations of where fruits should be added in relation to the CoordinateFrame of the base of a tree
 
- 
- findClosestAnchor    | returns an array of the closest anchor points to each tree node that is within the radius of attraction
- findGrowthDirections | returns a map from the trees that have an anchor point within the radius of attraction to the average direction from that tree node to all anchors attracting it
 
 **Major functions of Mesh**
  Function             | Description                                                
@@ -151,17 +162,20 @@ Design
  toOFF                | Writes the Mesh to an OFF file
  toOBJ                | Writes the Mesh to an OBJ file
 
+
 **Major functions of Face**
  Function             | Description                                                
  ---------------------|------------------------------------------------------------
  increment            | Increments all of the points of the face by a given number
 
 
-We have two classes to handle our tree generation, LGenerator, which generates an L-system tree, and SCGenerator, which generates a space colonization tree.
+To avoid having a lengthy App class, we abstracted our tree generation into two different classes, LGenerator, which generates an L-system tree, and SCGenerator, which generates a space colonization tree.
 
-Our program has four main functions: makeTree, makeBranch, addCylindricSection, and addLeaves. The makeTree function initializes the Meshes for the body of the tree and the leaves of the tree, and calls makeBranch to add cylinders to the Mesh. makeBranch is given a recursion depth that is decremented each time it is called. When the recursion depth is zero, it calls addLeaves to add leaves to the end of the current branch instead of constructing a new branch. addCylindricSection is a helper method for constructing cylinders that adds a circle underneath an initial circle. This design makes sense because we can see the initial parameters of the tree we are making by looking at the makeTree method call, and without having to see the details of how the tree is constructed in makeBranch. Also, this will allow us to have different makeBranch methods in order to generate trees of different phenotypes.
+The LGenerator has two main functions for tree generation, `makeLTreeSkeleton` and skeletonToMeshL. `makeLTreeSkeleton` creates a Tree with nodes determined by the phenotype and spine curve callback functions we pass to it. This function is recursive, calling `phenotype` for each branch. `phenotype` will return an array of child branches that determine the L-system structure. `skeletonToMeshL` takes a Tree skeleton and creates a Mesh for it, which can then be written to an OBJ or OFF file.
 
-To handle the logic of adding vertices and faces to a Mesh and writing the Mesh to a file in OFF format, we used Ben’s Mesh class from the Meshes lab. A `Vector` of `Point3`s is used to store the vertices and a `Vector` of `SmallArray`s of three `int`s, is used to store the faces. We also added a Face class to Mesh, which stores all the information we need to know about the faces of a mesh, including its points as well as its texture points. By having these classes, we do not have to write OFF or OBJ files of generated trees directly in our App class, which would make things messy and bulky.
+**TODO:: SPACE COL PARAGRAPH**
+
+To handle the logic of adding vertices and faces to a Mesh and writing the Mesh to a file, we used Ben’s Mesh class from the Meshes lab. A `Vector` of `Point3`s is used to store the vertices and a `Vector` of `SmallArray`s of three `int`s, is used to store the faces. We also added a Face class to Mesh, which stores all the information we need to know about the faces of a mesh, including its points as well as its texture points. By having these classes, we do not have to write OFF or OBJ files of generated trees directly in our App class, which would make things messy and bulky.
 
 
 Correctness Results
