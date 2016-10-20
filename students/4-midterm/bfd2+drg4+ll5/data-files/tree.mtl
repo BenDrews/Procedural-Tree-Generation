@@ -1,4 +1,4 @@
-newmtl bark
+newmtl bark0
   Ka 1.0000 1.0000 1.0000
   Kd 1.000 1.0000 1.0000
   Ks 0.0000 0.0000 0.0000
@@ -7,6 +7,39 @@ newmtl bark
 
   map_Ka maps\bark_diffuse.png
   map_Kd maps\bark_diffuse.png
+  map_bump maps\bark_normal.png
+
+  newmtl bark1
+  Ka 1.0000 1.0000 1.0000
+  Kd 1.000 1.0000 1.0000
+  Ks 0.0000 0.0000 0.0000
+  d 1.0000
+  illum 2
+
+  map_Ka maps\bark1.png
+  map_Kd maps\bark1.png
+  map_bump maps\bark_normal.png
+
+  newmtl bark2
+  Ka 1.0000 1.0000 1.0000
+  Kd 1.000 1.0000 1.0000
+  Ks 0.0000 0.0000 0.0000
+  d 1.0000
+  illum 2
+
+  map_Ka maps\bark2.png
+  map_Kd maps\bark2.png
+  map_bump maps\bark_normal.png
+
+  newmtl bark3
+  Ka 1.0000 1.0000 1.0000
+  Kd 1.000 1.0000 1.0000
+  Ks 0.0000 0.0000 0.0000
+  d 1.0000
+  illum 2
+
+  map_Ka maps\bark3.png
+  map_Kd maps\bark3.png
   map_bump maps\bark_normal.png
 
 newmtl leaf
@@ -18,5 +51,42 @@ newmtl leaf
 
   map_Ka maps\leaf_diffuse.png
   map_Kd maps\leaf_diffuse.png
+  map_d maps\leaf_alpha.png
+  map_bump maps\leaf_bump.png
+
+  newmtl orange
+  Ka 1.0000 1.0000 1.0000
+  Kd 1.000 1.0000 1.0000
+  Ks 0.0000 0.0000 0.0000
+  d 1.0000
+  illum 2
+
+  map_Ka maps\leafOrange.png
+  map_Kd maps\leafOrange.png
+  map_d maps\leaf_alpha.png
+  map_bump maps\leaf_bump.png
+
+  newmtl red
+  Ka 1.0000 1.0000 1.0000
+  Kd 1.000 1.0000 1.0000
+  Ks 0.0000 0.0000 0.0000
+  d 1.0000
+  illum 2
+
+  map_Ka maps\leafRed.png
+  map_Kd maps\leafRed.png
+  map_d maps\leaf_alpha.png
+  map_bump maps\leaf_bump.png
+
+
+  newmtl yellow
+  Ka 1.0000 1.0000 1.0000
+  Kd 1.000 1.0000 1.0000
+  Ks 0.0000 0.0000 0.0000
+  d 1.0000
+  illum 2
+
+  map_Ka maps\leafYellow.png
+  map_Kd maps\leafYellow.png
   map_d maps\leaf_alpha.png
   map_bump maps\leaf_bump.png

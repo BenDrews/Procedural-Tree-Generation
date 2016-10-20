@@ -37,7 +37,7 @@ shared_ptr<Tree> LGenerator::makeLTreeSkeleton(const CoordinateFrame& initial, s
 }
 
 /**Converts an L-System tree skeleton to a mesh. **/
-void LGenerator::skeletonToMeshL(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std::function<Vector3(float)> spineCurve, std::function<float(float, shared_ptr<Tree>)> branchRadius, Array<Point3>& fruitLocations, int circlePoints, int branchSections, float initialLength){
+void LGenerator::skeletonToMeshL(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std::function<Vector3(float)> spineCurve, std::function<float(float, shared_ptr<Tree>)> branchRadius, Array<Point3>& fruitLocations, int circlePoints, int branchSections, float initialLength, String& barkType, bool fall){
     float distanceAlongBranch = 0.0f;
     shared_ptr<Array<shared_ptr<Tree>>> children = tree->getChildren();
     float sectionRadius;
@@ -66,31 +66,32 @@ void LGenerator::skeletonToMeshL(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tr
 		// TODO:: pass a coordinate frame that is returned by space curve function (instead of initial)
         CoordinateFrame section = initial;
         section.translation = initial.pointToWorldSpace(length * spineCurve(distanceAlongBranch));
-        addCylindricSection(mesh, circlePoints, section, sectionRadius);
+        addCylindricSection(mesh, circlePoints, section, sectionRadius, barkType);
 	}
 
     if(children->size() == 0){
-        addLeaves(initial, length, leafMesh, fruitLocations);
+        addLeaves(initial, length, leafMesh, fruitLocations, fall);
         
     }else{
         float newLength = ((3.0f/5.0f)*length);
             
         for(int i = 0; i < children->size(); ++i){
-            skeletonToMeshL(mesh, leafMesh, children->operator[](i), spineCurve, branchRadius, fruitLocations, circlePoints, branchSections, newLength);
+            skeletonToMeshL(mesh, leafMesh, children->operator[](i), spineCurve, branchRadius, fruitLocations, circlePoints, branchSections, newLength, barkType, fall);
         }
     
     }
 }
 
 /**Adds leaves and fruits to a mesh**/
-void LGenerator::addLeaves(CoordinateFrame& initial, float length, Mesh& leafMesh, Array<Point3>& fruitLocations){
+void LGenerator::addLeaves(CoordinateFrame& initial, float length, Mesh& leafMesh, Array<Point3>& fruitLocations, bool fall){
     Random& rand = Random::threadCommon();
 
     //Add one leaf on the end of the branch
     CoordinateFrame leafFrame = initial;
     leafFrame.translation = initial.pointToWorldSpace(Point3(0.0f, (19.0f/20.0f)*length, 0.0f));
     float leafSize = 0.15f;
-    addLeaf(leafMesh, leafSize, leafFrame);
+    String texture = "leaf";
+    //addLeaf(leafMesh, leafSize, leafFrame, texture);
 	addFruits(fruitLocations, leafFrame);
     
     //Add random leaves along branch
@@ -106,13 +107,27 @@ void LGenerator::addLeaves(CoordinateFrame& initial, float length, Mesh& leafMes
         leafFrame.translation = initial.pointToWorldSpace(Point3(0.0f, rDisplacement, 0.0f));
         leafFrame = leafFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, rYaw);
         leafFrame = leafFrame * CoordinateFrame::fromXYZYPRDegrees(0.0f, 0.0f, 0.0f, 0.0f, rPitch);
-        addLeaf(leafMesh, leafSize, leafFrame);
+
+
+        if(fall){
+            int leafNum = rand.integer(0,2);
+            if(leafNum == 0){
+                texture = "yellow";
+            }else if(leafNum == 1){
+                texture = "orange";
+            }else{
+                texture = "red";            
+            }
+        
+        }
+
+        addLeaf(leafMesh, leafSize, leafFrame, texture);
     }
 
 }
 
 /**Adds a single leaf to a mesh **/
-void LGenerator::addLeaf(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFrame) const {
+void LGenerator::addLeaf(Mesh& leafMesh, float& leafSize, const CoordinateFrame& leafFrame, String& leafTexture) const {
     int index = leafMesh.numVertices();
     Vector3 vec1 = Vector3(leafSize / 2.0f, leafSize, 0.0f);
     vec1 = leafFrame.pointToWorldSpace(vec1);
@@ -123,8 +138,8 @@ void LGenerator::addLeaf(Mesh& leafMesh, float& leafSize, const CoordinateFrame&
     leafMesh.addVertex(vec1);
     leafMesh.addVertex(vec2);
     leafMesh.addVertex(vec3);
-    leafMesh.addFace(index, index+1, index+2, 4, 3, 5, "leaf");
-    leafMesh.addFace(index+2, index+1, index, 5, 3, 4, "leaf");
+    leafMesh.addFace(index, index+1, index+2, 4, 3, 5, leafTexture);
+    leafMesh.addFace(index+2, index+1, index, 5, 3, 4, leafTexture);
 }
 
 /**Adds a single fruit to a mesh**/
@@ -133,7 +148,7 @@ void LGenerator::addFruits(Array<Point3>& fruitLocations, const CoordinateFrame&
 }
 
 /**Creates a new branch section in a mesh**/
-void LGenerator::addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const {
+void LGenerator::addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius, String& bark) const {
 	int index = mesh.numVertices();
 
     for(int i = 0; i < pts; ++i) {
@@ -145,8 +160,8 @@ void LGenerator::addCylindricSection(Mesh& mesh, const int& pts, const Coordinat
 	}
 	int offset = index - pts;
 	for(int i = 0; i < pts; ++i) {
-		mesh.addFace( offset + i, offset + i + (pts),offset + ((i + 1) % pts), 2, 3, 1, "bark");
-		mesh.addFace(offset + i + (pts), offset + ((i + 1) % pts) + (pts), offset + ((i + 1) % pts), 2, 4, 3, "bark");
+		mesh.addFace( offset + i, offset + i + (pts),offset + ((i + 1) % pts), 2, 3, 1, bark);
+		mesh.addFace(offset + i + (pts), offset + ((i + 1) % pts) + (pts), offset + ((i + 1) % pts), 2, 4, 3, bark);
 	}
 }
 

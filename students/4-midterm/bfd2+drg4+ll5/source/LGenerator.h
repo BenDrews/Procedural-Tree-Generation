@@ -19,15 +19,15 @@ class LGenerator {
 protected:   
     
     float distanceAlongBranch = 0.0f;
-    void addLeaf(Mesh& leafMesh, float& length, const CoordinateFrame& initial) const;
-    void addLeaves(CoordinateFrame& initial, float length, Mesh& leafMesh, Array<Point3>& fruitLocations);
+    void addLeaf(Mesh& leafMesh, float& length, const CoordinateFrame& initial, String& leafTexture) const;
+    void addLeaves(CoordinateFrame& initial, float length, Mesh& leafMesh, Array<Point3>& fruitLocations, bool fall);
 
 	void addFruits(Array<Point3>& fruitLocations, const CoordinateFrame& fruitFrame);
-    void addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius) const;
+    void addCylindricSection(Mesh& mesh, const int& pts, const CoordinateFrame& origin, const float& radius, String& bark) const;
     
 public:
     shared_ptr<Tree> makeLTreeSkeleton(const CoordinateFrame& initial, std::function<void(Array<BranchDimensions>&, float, const CoordinateFrame&, Point3&, int, int)> phenotype, std::function<Vector3(float)> spineCurve, float length, int maxRecursionDepth, int currentRecursionDepth, shared_ptr<Tree> parent = nullptr);
-    void skeletonToMeshL(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std::function<Vector3(float)> spineCurve, std::function<float(float, shared_ptr<Tree>)> branchRadius, Array<Point3>& fruitLocations, int circlePoints, int branchSections, float initialLength);
+    void skeletonToMeshL(Mesh& mesh, Mesh& leafMesh, const shared_ptr<Tree> tree, std::function<Vector3(float)> spineCurve, std::function<float(float, shared_ptr<Tree>)> branchRadius, Array<Point3>& fruitLocations, int circlePoints, int branchSections, float initialLength, String& bark, bool fall);
   
     static Vector3 straight(float t);
 	static Vector3 curvy(float t);
