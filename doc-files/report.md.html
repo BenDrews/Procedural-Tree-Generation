@@ -5,7 +5,7 @@
             drg4@williams.edu
             ll5@williams.edu
 
-![Only in computer graphics does one tree beget a forest.](evocativescene.png)
+![Only in computer graphics does one tree beget a forest. [#glDev] [#UVQ] ](evocativescene.png)
 
 
 Introduction 
@@ -89,28 +89,22 @@ Topic Overview
 
 L-systems provide an easy way to generate plantlike structures. Nature often encorporates fractal patterns in how plants grow and branch, which translates easily into recursive method calls which mirror such growth on a mesh (1).
 
-![Fractals in Nature](plantFractal.png width=800)
+![Fractals in Nature [#Wikipedia]](plantFractal.png width=800)
 
-In order to set up this generation, a set of simple recusive rules must be written. These generally replace or grow a set of smaller branches off of a parent branch, and can be applied repeatedly to get increasingly detailed results.
+In order to set up this generation, a set of simple recusive rules must be written. These generally replace or grow a set of smaller branches off of a parent branch, and can be applied repeatedly to get increasingly detailed results. [#Wikipedia]
 
-![Products of L-Systems](L-SystemProducts.jpg width=800)
+![Products of L-Systems [#Wikipedia]](L-SystemProducts.jpg width=800)
 
 **Tree Generation using Space Colonization**
 
 Space Colonization is an algorithm that attempts to model the competition by branches for space on a tree in its generation. It does a better job than L-Systems at modeling mature trees, since as plant mature, the factors limiting their growth start to weigh more heavily on how branches are placed than the factors creating opportunites for growth (2).
 
-![Tree generated with Space Colonization](SpaceColonizationTree.jpg width=800)
+![Tree generated with Space Colonization [#Runions]](SpaceColonizationTree.jpg width=800)
 
-The algorithm works by randomly seeding a volume with anchor points, which pull on tree nodes, spawning adjacent tree nodes in the average direction of the anchor points pulling on that node. Once a tree node gets too close to an anchor node, than anchor is destroyed. This process repeats until all anchors are destroyed.
+The algorithm works by randomly seeding a volume with anchor points, which pull on tree nodes, spawning adjacent tree nodes in the average direction of the anchor points pulling on that node. Once a tree node gets too close to an anchor node, than anchor is destroyed. This process repeats until all anchors are destroyed. [#Runions]
 
-![Space Colonization Iteration](SpaceColIter.jpg width=400)
+![Space Colonization Iteration [#Runions] ](SpaceColIter.jpg width=400)
 
-
-**Works Cited**
-
-1. “L-system,” *Wikipedia*, accessed 19 Oct 2016. https://en.wikipedia.org/wiki/L-system
-
-2. Adam Runions, Brendan Lane, and Przemyslaw Prusinkiewicz, “Modeling Trees with a Space Colonization Algorithm,” Eurographics Workshop on Natural Phenomena (2007). http://algorithmicbotany.org/papers/colonization.egwnp2007.pdf
 
 Design
 ==================================
@@ -247,9 +241,9 @@ Quality Results
 ==================================
 ![This image of a L-system tree with recursion depth of 10 demonstrates our "curvy" spine curve function, showing we can successfully generate trees with branches that curve in different ways.](branchesofacurvedtree.png)
 
-![This image of an orchard shows that we can use our program to easily generate a scene with tree models that have varying characteristics by changing the parameters of our tree generation. It also showcases the "orchard" feature of our program. The positions of some of the dollar stacks were modified in the scene editor to look less awkward.](orchard.png) 
+![This image of an orchard shows that we can use our program to easily generate a scene with tree models that have varying characteristics by changing the parameters of our tree generation. It also showcases the "orchard" feature of our program. The positions of some of the dollar stacks were modified in the scene editor to look less awkward. [#3DGold] ](orchard.png) 
 
-![This image shows the branch density of our space colonization trees through the use of lighting and shadows.](bookTree.png)
+![This image shows the branch density of our space colonization trees through the use of lighting and shadows. [#haloedrain] ](bookTree.png)
 
 ![](lTree1.png width=200 height=200) ![](lTree2.png width=200 height=200) ![](lTree3.png width=200 height=200)
 ![](lTree4.png width=200 height=200) ![](lTree5.png width=200 height=200) ![](lTree6.png width=200 height=200)
@@ -258,7 +252,7 @@ Quality Results
 
 Evocative Result
 ==================================
-![Because we incorporated so many parameters, as well as randomness, to our tree generation, it was easy to create a forest with different trees. The scene has dramatic lighting and showcases the warm colors of autumn.](evocativescene.png)
+![Because we incorporated so many parameters, as well as randomness, to our tree generation, it was easy to create a forest with different trees. The scene has dramatic lighting and showcases the warm colors of autumn. [#glDev] [#UVQ] ](evocativescene.png)
 
 
 Schedule
@@ -295,6 +289,25 @@ Change Log
 2. Modified L-system generation algorithm to use Ben's tree class - Diego, 10/17.
 3. Added a new tree generation algorithm, **space colonization**, to the specification - Ben, 10/11.
 
+
+**Works Cited**
+====================================
+
+[#wikipedia]: “L-system,” *Wikipedia*, accessed 19 Oct 2016. https://en.wikipedia.org/wiki/L-system
+
+[#Runions]: Adam Runions, Brendan Lane, and Przemyslaw Prusinkiewicz, “Modeling Trees with a Space Colonization Algorithm,” Eurographics Workshop on Natural Phenomena (2007). http://algorithmicbotany.org/papers/colonization.egwnp2007.pdf
+
+[#glDev]: glDev (Dec 11, 2013) "Wooden Cabin" [3D model] turbosquid.com http://www.turbosquid.com/3d-models/free-wooden-cabin-3d-model/786883
+    Accessed 10/21/2016.
+
+[#UVQ]: UVQ (Oct 1, 2012) "Well" [3D model] turbosquid.com http://www.turbosquid.com/3d-models/free-max-model-well-bucket/697082 
+    Accessed 10/21/2016.
+
+[#haloedrain]: haloedrain (Sep 12, 2006) "book" [3D model] turbosquid.com http://www.turbosquid.com/3d-models/book-3d-model/321013
+    Accessed 10/21/2016.
+
+[#3DGold]: 3DGold (Sep 12, 2006) "Free Dollar Bill" [3D model] turbosquid.com http://www.turbosquid.com/3d-models/free-dollar-bill-3d-model/501923
+    Accessed 10/21/2016.
 
 <!-- Markdeep: -->
 <style class="fallback">body{visibility:hidden;white-space:pre;font-family:monospace;}</style><script src="https://casual-effects.com/markdeep/latest/markdeep.min.js"></script><script>window.alreadyProcessedMarkdeep||(document.body.style.visibility="visible")</script>
